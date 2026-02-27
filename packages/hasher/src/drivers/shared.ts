@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 
 import { timingSafeEqual } from '../helpers.js';
-import type { HasherDriver } from '../types.js';
+import type { HasherDriver } from '#src/types.js';
 
 type DigestAlgorithm =
 	| 'sha1'

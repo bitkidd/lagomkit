@@ -5,7 +5,7 @@ import {
 	createSha2_256Driver,
 	createSha2_384Driver,
 	createSha2_512Driver,
-} from '../src/drivers/sha2.js';
+} from '#src/drivers/sha2.js';
 
 describe('Hasher::SHA2', () => {
 	test('should hash with expected digest lengths', async () => {

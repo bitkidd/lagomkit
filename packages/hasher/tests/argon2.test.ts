@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { createArgon2Driver } from '../src/drivers/argon2.js';
+import { createArgon2Driver } from '#src/drivers/argon2.js';
 
 describe('Hasher::Argon2', () => {
 	const driver = createArgon2Driver();

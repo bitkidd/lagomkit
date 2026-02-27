@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { createSha512Driver } from '../src/drivers/sha512.js';
+import { createSha512Driver } from '#src/drivers/sha512.js';
 
 describe('Hasher::SHA512', () => {
 	const driver = createSha512Driver();

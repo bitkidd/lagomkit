@@ -5,7 +5,7 @@ import {
 	createSha3_256Driver,
 	createSha3_384Driver,
 	createSha3_512Driver,
-} from '../src/drivers/sha3.js';
+} from '#src/drivers/sha3.js';
 
 describe('Hasher::SHA3', () => {
 	test('should hash with expected digest lengths', async () => {

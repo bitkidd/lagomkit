@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { createBcryptDriver } from '../src/drivers/bcrypt.js';
+import { createBcryptDriver } from '#src/drivers/bcrypt.js';
 
 describe('Hasher::Bcrypt', () => {
 	const driver = createBcryptDriver();

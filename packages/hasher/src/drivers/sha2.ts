@@ -1,4 +1,4 @@
-import type { HasherDriver } from '../types.js';
+import type { HasherDriver } from '#src/types.js';
 
 import { createDigestDriver } from './shared.js';
 

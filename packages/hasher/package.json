@@ -42,6 +42,9 @@
 	"files": [
 		"/dist/"
 	],
+	"imports": {
+		"#src/*": "./src/*"
+	},
 	"exports": {
 		".": {
 			"types": "./dist/src/exports.d.ts",

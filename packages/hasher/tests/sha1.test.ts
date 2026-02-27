@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 
-import { createSha1Driver } from '../src/drivers/sha1.js';
+import { createSha1Driver } from '#src/drivers/sha1.js';
 
 describe('Hasher::SHA1', () => {
 	const driver = createSha1Driver();

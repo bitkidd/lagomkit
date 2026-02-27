@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { createHasherService, createSha2_256Driver } from '../src/exports.js';
+import { createHasherService, createSha2_256Driver } from '#src/exports.js';
 
 const service = createHasherService({
 	default: 'sha256',

@@ -1,4 +1,4 @@
-import type { HasherDriver } from '../types.js';
+import type { HasherDriver } from '#src/types.js';
 
 import { hash, verify } from '@node-rs/argon2';
 
