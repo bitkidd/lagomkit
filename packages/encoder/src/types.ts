@@ -12,8 +12,3 @@ export interface EncoderService<
 	default: () => EncoderDriver;
 	use: <Key extends keyof KnownEncoders>(driver: Key) => KnownEncoders[Key];
 }
-
-export type EncoderDriverContract = EncoderDriver;
-export type EncoderServiceContract<
-	KnownEncoders extends Record<string, EncoderDriver>,
-> = EncoderService<KnownEncoders>;

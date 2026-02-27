@@ -73,4 +73,3 @@ type EncoderDriver = {
 - Base32 and Base64 support optional `includePadding` (defaults to `true`).
 - Base64 URL-safe encoding defaults to `includePadding: false`.
 - Hex output is uppercase and decode accepts lowercase or uppercase input.
-- Compatibility type aliases are available: `EncoderDriverContract`, `EncoderServiceContract`.
