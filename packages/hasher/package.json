@@ -2,7 +2,28 @@
 	"name": "@lagomkit/hasher",
 	"version": "1.0.0",
 	"type": "module",
-	"main": "./dist/exports.js",
+	"keywords": [
+		"hasher",
+		"hash",
+		"argon2",
+		"bcrypt",
+		"scrypt",
+		"sha1",
+		"sha2",
+		"sha3",
+		"typescript",
+		"lagomkit"
+	],
+	"author": "Chirill Ceban <cc@bitkidd.dev>",
+	"license": "MIT",
+	"description": "Typed hashing toolkit with composable drivers and a lightweight service factory.",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/bitkidd/lagomkit"
+	},
+	"main": "./dist/src/exports.js",
+	"types": "./dist/src/exports.d.ts",
+	"sideEffects": false,
 	"directories": {
 		"test": "tests"
 	},
@@ -20,13 +41,27 @@
 		"/dist/"
 	],
 	"exports": {
-		".": "./dist/exports.js",
-		"./src/*": "./dist/*.js"
+		".": {
+			"types": "./dist/src/exports.d.ts",
+			"import": "./dist/src/exports.js",
+			"default": "./dist/src/exports.js"
+		},
+		"./service": {
+			"types": "./dist/src/service.d.ts",
+			"import": "./dist/src/service.js",
+			"default": "./dist/src/service.js"
+		},
+		"./types": {
+			"types": "./dist/src/types.d.ts",
+			"import": "./dist/src/types.js",
+			"default": "./dist/src/types.js"
+		},
+		"./drivers/*": {
+			"types": "./dist/src/drivers/*.d.ts",
+			"import": "./dist/src/drivers/*.js",
+			"default": "./dist/src/drivers/*.js"
+		}
 	},
-	"keywords": [],
-	"author": "",
-	"license": "MIT",
-	"description": "",
 	"dependencies": {
 		"@node-rs/argon2": "^2.0.2",
 		"@node-rs/bcrypt": "^1.10.7"
