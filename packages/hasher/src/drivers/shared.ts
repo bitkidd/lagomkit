@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 
+import { timingSafeEqual } from '../helpers.js';
 import type { HasherDriver } from '../types.js';
 
 type DigestAlgorithm =
@@ -36,7 +37,7 @@ export function createDigestDriver(algorithm: DigestAlgorithm): HasherDriver {
 			hash: string;
 		}): Promise<boolean> {
 			const generatedHash = computeDigest({ content, algorithm });
-			return generatedHash === hash;
+			return timingSafeEqual(generatedHash, hash);
 		},
 	};
 }

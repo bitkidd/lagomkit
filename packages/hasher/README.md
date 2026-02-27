@@ -63,7 +63,6 @@ type HasherDriver = {
 
 - `createArgon2Driver()`
 - `createBcryptDriver({ cost? })`
-- `createScryptDriver({ iterations?, saltLength? })`
 
 ### SHA-1
 
@@ -92,4 +91,3 @@ Compatibility aliases:
 
 - Input text is normalized with Unicode `NFKC` before hashing.
 - SHA drivers are deterministic and produce lowercase hex output.
-- `scrypt` returns values in `<salt>:<derivedKey>` format.

@@ -3,7 +3,6 @@ export * from './drivers/bcrypt.js';
 export * from './drivers/sha1.js';
 export * from './drivers/sha2.js';
 export * from './drivers/sha3.js';
-export * from './drivers/scrypt.js';
 export * from './drivers/sha256.js';
 export * from './drivers/sha512.js';
 export * from './service.js';
