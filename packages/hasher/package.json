@@ -1,0 +1,39 @@
+{
+	"name": "@lagomkit/hasher",
+	"version": "1.0.0",
+	"type": "module",
+	"main": "./dist/exports.js",
+	"directories": {
+		"test": "tests"
+	},
+	"scripts": {
+		"prepare": "npm run build",
+		"prepublishOnly": "npm run test",
+		"build": "rm -rf dist/* && tsgo --project tsconfig.build.json",
+		"check": "pnpx @biomejs/biome check --write",
+		"format": "pnpx @biomejs/biome format --write",
+		"lint": "pnpx @biomejs/biome lint --write",
+		"test": "vitest run --sequence.concurrent",
+		"coverage": "vitest run --coverage"
+	},
+	"files": [
+		"/dist/"
+	],
+	"exports": {
+		".": "./dist/exports.js",
+		"./src/*": "./dist/*.js"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "MIT",
+	"description": "",
+	"dependencies": {
+		"@node-rs/argon2": "^2.0.2",
+		"@node-rs/bcrypt": "^1.10.7"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "2.4.4",
+		"@tsconfig/node24": "^24.0.4",
+		"@typescript/native-preview": "7.0.0-dev.20260227.1"
+	}
+}
