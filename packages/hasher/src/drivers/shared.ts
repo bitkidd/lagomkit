@@ -24,6 +24,9 @@ function computeDigest({
 	return createHash(algorithm).update(content.normalize('NFKC')).digest('hex');
 }
 
+/**
+ * Creates a digest-based hasher driver for the given algorithm.
+ */
 export function createDigestDriver(algorithm: DigestAlgorithm): HasherDriver {
 	return {
 		async hash({ content }: { content: string }): Promise<string> {

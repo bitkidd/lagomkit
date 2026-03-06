@@ -1,5 +1,11 @@
 import type { HasherDriver, HasherService } from './types.js';
 
+/**
+ * Creates a hasher service from a typed driver map.
+ *
+ * @param config.default Driver key used by `default()`.
+ * @param config.drivers Available hasher drivers.
+ */
 export function createHasherService<
 	KnownHashers extends Record<string, HasherDriver>,
 >(config: {
