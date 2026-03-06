@@ -1,0 +1,9 @@
+{
+	"name": "@lagomkit/random",
+	"version": "1.0.0",
+	"license": "MIT",
+	"exports": "./src/exports.ts",
+	"publish": {
+		"exclude": ["dist/**", "node_modules/**", "tests/**"]
+	}
+}
