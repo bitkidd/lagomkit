@@ -1,5 +1,8 @@
 import type { RandomGeneratorDriverContract } from '#src/types.js';
 
+/**
+ * Runtime options for numeric token generation.
+ */
 export type RandomTokenDriverOptions = {
 	length?: number;
 };
@@ -10,6 +13,11 @@ function ensureValidLength(length: number): void {
 	}
 }
 
+/**
+ * Creates a numeric token random driver.
+ *
+ * @param config.length Default output length.
+ */
 export function createRandomTokenDriver(config?: {
 	length?: number;
 }): RandomGeneratorDriverContract<RandomTokenDriverOptions> {

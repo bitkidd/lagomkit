@@ -3,6 +3,12 @@ import type {
 	RandomGeneratorDriverContract,
 } from './types.js';
 
+/**
+ * Creates a random generator service from a typed driver map.
+ *
+ * @param config.default Driver key used by `default()`.
+ * @param config.drivers Available random generator drivers.
+ */
 export function createRandomGeneratorService<
 	KnownDrivers extends Record<string, RandomGeneratorDriverContract>,
 >(config: {

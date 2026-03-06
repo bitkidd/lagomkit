@@ -1,5 +1,8 @@
 import type { RandomGeneratorDriverContract } from '#src/types.js';
 
+/**
+ * Runtime options for random string generation.
+ */
 export type RandomStringDriverOptions = {
 	length?: number;
 };
@@ -10,6 +13,11 @@ function ensureValidLength(length: number): void {
 	}
 }
 
+/**
+ * Creates a hex-based random string driver.
+ *
+ * @param config.length Default output length.
+ */
 export function createRandomStringDriver(config?: {
 	length?: number;
 }): RandomGeneratorDriverContract<RandomStringDriverOptions> {
