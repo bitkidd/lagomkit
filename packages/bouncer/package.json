@@ -1,22 +1,20 @@
 {
-	"name": "@lagomkit/encoder",
-	"version": "1.1.0",
+	"name": "@lagomkit/bouncer",
+	"version": "1.0.0",
 	"type": "module",
 	"keywords": [
-		"encoder",
-		"base32",
-		"base64",
-		"base64url",
-		"hex",
+		"bouncer",
+		"authorization",
+		"policy",
 		"typescript",
 		"lagomkit"
 	],
 	"author": "Chirill Ceban <cc@bitkidd.dev>",
 	"license": "MIT",
-	"description": "Typed encoding toolkit with composable drivers and a lightweight service factory.",
+	"description": "Typed authorization toolkit with policy-based checks and a lightweight service factory.",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/bitkidd/lagomkit.git"
+		"url": "git+https://github.com/bitkidd/lagomkit.git"
 	},
 	"main": "./dist/src/exports.js",
 	"types": "./dist/src/exports.d.ts",
@@ -58,11 +56,6 @@
 			"types": "./dist/src/types.d.ts",
 			"import": "./dist/src/types.js",
 			"default": "./dist/src/types.js"
-		},
-		"./drivers/*": {
-			"types": "./dist/src/drivers/*.d.ts",
-			"import": "./dist/src/drivers/*.js",
-			"default": "./dist/src/drivers/*.js"
 		}
 	},
 	"dependencies": {},
