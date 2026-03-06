@@ -2,12 +2,6 @@
 
 Small, typed authorization toolkit with policy-based checks and a lightweight service factory.
 
-## Install
-
-```bash
-npm install @lagomkit/bouncer
-```
-
 ## Quick start
 
 ```ts

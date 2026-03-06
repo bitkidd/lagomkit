@@ -2,12 +2,6 @@
 
 Small, typed hashing toolkit with composable drivers and a lightweight service factory.
 
-## Install
-
-```bash
-npm install @lagomkit/hasher
-```
-
 ## Quick start
 
 ```ts

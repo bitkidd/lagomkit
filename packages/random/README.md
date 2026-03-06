@@ -2,12 +2,6 @@
 
 Small, typed random generation toolkit with composable drivers and a lightweight service factory.
 
-## Install
-
-```bash
-npm install @lagomkit/random
-```
-
 ## Quick start
 
 ```ts

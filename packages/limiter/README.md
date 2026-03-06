@@ -2,12 +2,6 @@
 
 Small, typed rate-limiting toolkit with composable drivers and a lightweight service factory.
 
-## Install
-
-```bash
-npm install @lagomkit/limiter
-```
-
 ## Quick start
 
 ```ts
