@@ -1,5 +1,8 @@
 import type { LimiterDriverContract } from '../types.js';
 
+/**
+ * Configuration for the in-memory limiter driver.
+ */
 export type LimiterMemoryDriverConfig = {
 	limit?: number;
 	period?: number;
@@ -73,6 +76,14 @@ function resolveCheckResult(params: {
 	};
 }
 
+/**
+ * Creates an in-memory limiter driver.
+ *
+ * @param config.limit Default max requests per topic window.
+ * @param config.period Default window length in seconds.
+ * @param config.onException Fallback handler for unauthorized calls.
+ * @param config.cleanupInterval Background stale-entry cleanup interval in seconds.
+ */
 export function createMemoryLimiterDriver(
 	config?: LimiterMemoryDriverConfig,
 ): LimiterDriverContract {

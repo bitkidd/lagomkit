@@ -1,5 +1,11 @@
 import type { LimiterDriverContract, LimiterServiceContract } from './types.js';
 
+/**
+ * Creates a limiter service from a typed driver map.
+ *
+ * @param config.default Driver key used by `default()`.
+ * @param config.drivers Available limiter drivers.
+ */
 export function createLimiterService<
 	KnownLimiters extends Record<string, LimiterDriverContract>,
 >(config: {
