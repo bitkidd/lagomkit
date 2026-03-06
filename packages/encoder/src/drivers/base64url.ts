@@ -2,6 +2,9 @@ import type { EncoderDriver } from '#src/types.js';
 
 import { createBase64Driver } from './base64.js';
 
+/**
+ * Creates a URL-safe Base64 encoder/decoder driver.
+ */
 export function createBase64UrlDriver(): EncoderDriver {
 	const base64 = createBase64Driver();
 

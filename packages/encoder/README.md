@@ -2,12 +2,6 @@
 
 Small, typed encoding toolkit with composable drivers and a lightweight service factory.
 
-## Install
-
-```bash
-npm install @lagomkit/encoder
-```
-
 ## Quick start
 
 ```ts

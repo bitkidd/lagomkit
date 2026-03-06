@@ -1,5 +1,8 @@
 import type { EncoderDriver } from '#src/types.js';
 
+/**
+ * Creates a standard Base64 encoder/decoder driver.
+ */
 export function createBase64Driver(): EncoderDriver {
 	const alphabet =
 		'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';

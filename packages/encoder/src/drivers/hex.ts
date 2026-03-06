@@ -1,5 +1,8 @@
 import type { EncoderDriver } from '#src/types.js';
 
+/**
+ * Creates a hexadecimal encoder/decoder driver.
+ */
 export function createHexDriver(): EncoderDriver {
 	const hexDecodeMap = new Map<string, number>([
 		['0', 0],

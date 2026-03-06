@@ -1,5 +1,8 @@
 import type { EncoderDriver } from '#src/types.js';
 
+/**
+ * Creates an RFC 4648 Base32 encoder/decoder driver.
+ */
 export function createBase32Driver(): EncoderDriver {
 	const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
 

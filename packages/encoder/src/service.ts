@@ -1,5 +1,11 @@
 import type { EncoderDriver, EncoderService } from './types.js';
 
+/**
+ * Creates an encoder service from a typed driver map.
+ *
+ * @param config.default Driver key used by `default()`.
+ * @param config.drivers Available encoder drivers.
+ */
 export function createEncoderService<
 	KnownEncoders extends Record<string, EncoderDriver>,
 >(config: {
