@@ -54,7 +54,10 @@ export function createMemoryFlasherDriver(): FlasherDriverContract {
 			const expiresAt =
 				typeof ttlMs === 'number' ? Date.now() + Math.max(0, ttlMs) : undefined;
 
-			messages.set(id, { value, expiresAt });
+			messages.set(id, {
+				value,
+				...(expiresAt === undefined ? {} : { expiresAt }),
+			});
 
 			return id;
 		},
