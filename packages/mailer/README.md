@@ -2,12 +2,6 @@
 
 Small, typed mail delivery toolkit with composable drivers and a lightweight service factory.
 
-## Install
-
-```bash
-npm install @lagomkit/mailer
-```
-
 ## Quick start
 
 ```ts
