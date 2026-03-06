@@ -1,5 +1,11 @@
 import type { BouncerPolicy, BouncerServiceContract } from './types.js';
 
+/**
+ * Creates a typed bouncer service from a policy map.
+ *
+ * @param config.policies Policy definitions keyed by policy name.
+ * @param config.onException Fallback handler invoked when `authorize` fails.
+ */
 export function createBouncerService<
 	AvailablePolicies extends Record<string, BouncerPolicy>,
 >(config: {
