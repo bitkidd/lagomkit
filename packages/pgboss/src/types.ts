@@ -1,0 +1,236 @@
+import type {
+	ConstructorOptions,
+	FetchOptions,
+	Job,
+	JobWithMetadata,
+	SendOptions,
+	StopOptions,
+	WorkHandler,
+	WorkOptions,
+} from 'pg-boss';
+
+/**
+ * Payload supported by pg-boss job data.
+ */
+export type PgBossTaskPayload = object | null | undefined;
+
+/**
+ * Task declaration used for payload inference and worker registration.
+ */
+export type PgBossTask<Data extends PgBossTaskPayload = PgBossTaskPayload> = {
+	readonly name?: string;
+	readonly options?: WorkOptions;
+	readonly handler: WorkHandler<Data>;
+};
+
+/**
+ * Collection of named task declarations.
+ */
+export type PgBossTaskMap = Record<string, PgBossTask<any>>;
+
+/**
+ * Allowed task keys from the configured task map.
+ */
+export type PgBossTaskName<Tasks extends PgBossTaskMap> = keyof Tasks & string;
+
+/**
+ * Payload type inferred from a task declaration.
+ */
+export type PgBossTaskData<
+	Tasks extends PgBossTaskMap,
+	TaskName extends PgBossTaskName<Tasks>,
+> = Tasks[TaskName] extends PgBossTask<infer Data> ? Data : never;
+
+/**
+ * Send argument shape inferred from a specific task.
+ */
+export type PgBossSendArgs<
+	Tasks extends PgBossTaskMap,
+	TaskName extends PgBossTaskName<Tasks>,
+> =
+	undefined extends PgBossTaskData<Tasks, TaskName>
+		? {
+				task: TaskName;
+				data?: PgBossTaskData<Tasks, TaskName>;
+				options?: SendOptions;
+			}
+		: {
+				task: TaskName;
+				data: PgBossTaskData<Tasks, TaskName>;
+				options?: SendOptions;
+			};
+
+/**
+ * Task argument shape that conditionally requires data.
+ */
+export type PgBossTaskArgs<
+	Tasks extends PgBossTaskMap,
+	TaskName extends PgBossTaskName<Tasks>,
+> =
+	undefined extends PgBossTaskData<Tasks, TaskName>
+		? {
+				task: TaskName;
+				data?: PgBossTaskData<Tasks, TaskName>;
+			}
+		: {
+				task: TaskName;
+				data: PgBossTaskData<Tasks, TaskName>;
+			};
+
+/**
+ * Minimal pg-boss client surface used by the service.
+ */
+export interface PgBossClientContract {
+	start: () => Promise<unknown>;
+	stop: (options?: StopOptions) => Promise<void>;
+	send: (
+		name: string,
+		data?: object | null,
+		options?: SendOptions,
+	) => Promise<string | null>;
+	sendAfter: {
+		(
+			name: string,
+			data: object | null,
+			options: SendOptions | null,
+			value: Date,
+		): Promise<string | null>;
+		(
+			name: string,
+			data: object | null,
+			options: SendOptions | null,
+			value: string,
+		): Promise<string | null>;
+		(
+			name: string,
+			data: object | null,
+			options: SendOptions | null,
+			value: number,
+		): Promise<string | null>;
+	};
+	sendThrottled: (
+		name: string,
+		data: object | null,
+		options: SendOptions | null,
+		seconds: number,
+		key?: string,
+	) => Promise<string | null>;
+	sendDebounced: (
+		name: string,
+		data: object | null,
+		options: SendOptions | null,
+		seconds: number,
+		key?: string,
+	) => Promise<string | null>;
+	fetch: {
+		<T>(
+			name: string,
+			options: FetchOptions & { includeMetadata: true },
+		): Promise<JobWithMetadata<T>[]>;
+		<T>(name: string, options?: FetchOptions): Promise<Job<T>[]>;
+	};
+	work: {
+		<ReqData, ResData = any>(
+			name: string,
+			handler: WorkHandler<ReqData, ResData>,
+		): Promise<string>;
+		<ReqData, ResData = any>(
+			name: string,
+			options: WorkOptions,
+			handler: WorkHandler<ReqData, ResData>,
+		): Promise<string>;
+	};
+}
+
+/**
+ * Configuration supported by createPgBossService.
+ */
+export type CreatePgBossServiceConfig<Tasks extends PgBossTaskMap> =
+	| {
+			tasks: Tasks;
+			autoWork?: boolean;
+			boss: PgBossClientContract;
+	  }
+	| {
+			tasks: Tasks;
+			autoWork?: boolean;
+			connectionString: string;
+			options?: Omit<ConstructorOptions, 'connectionString'>;
+	  }
+	| {
+			tasks: Tasks;
+			autoWork?: boolean;
+			options: ConstructorOptions;
+	  };
+
+/**
+ * Typed pg-boss service API.
+ */
+export interface PgBossServiceContract<Tasks extends PgBossTaskMap> {
+	/**
+	 * Starts the underlying pg-boss instance and optionally auto-registers task workers.
+	 */
+	start: () => Promise<void>;
+	/**
+	 * Stops the underlying pg-boss instance.
+	 */
+	stop: (options?: StopOptions) => Promise<void>;
+	/**
+	 * Returns the underlying pg-boss client instance.
+	 */
+	client: () => PgBossClientContract;
+	/**
+	 * Sends a task with payload inferred from the selected task key.
+	 */
+	send: <TaskName extends PgBossTaskName<Tasks>>(
+		args: PgBossSendArgs<Tasks, TaskName>,
+	) => Promise<string | null>;
+	/**
+	 * Sends a task that starts after a date, date string, or delay in seconds.
+	 */
+	sendAfter: <TaskName extends PgBossTaskName<Tasks>>(
+		args: {
+			options?: SendOptions | null;
+			value: Date | string | number;
+		} & PgBossTaskArgs<Tasks, TaskName>,
+	) => Promise<string | null>;
+	/**
+	 * Sends a throttled task.
+	 */
+	sendThrottled: <TaskName extends PgBossTaskName<Tasks>>(
+		args: {
+			options?: SendOptions | null;
+			seconds: number;
+			key?: string;
+		} & PgBossTaskArgs<Tasks, TaskName>,
+	) => Promise<string | null>;
+	/**
+	 * Sends a debounced task.
+	 */
+	sendDebounced: <TaskName extends PgBossTaskName<Tasks>>(
+		args: {
+			options?: SendOptions | null;
+			seconds: number;
+			key?: string;
+		} & PgBossTaskArgs<Tasks, TaskName>,
+	) => Promise<string | null>;
+	/**
+	 * Fetches jobs with payload type inferred from the task key.
+	 */
+	fetch: {
+		<TaskName extends PgBossTaskName<Tasks>>(
+			task: TaskName,
+			options: FetchOptions & { includeMetadata: true },
+		): Promise<JobWithMetadata<PgBossTaskData<Tasks, TaskName>>[]>;
+		<TaskName extends PgBossTaskName<Tasks>>(
+			task: TaskName,
+			options?: FetchOptions,
+		): Promise<Job<PgBossTaskData<Tasks, TaskName>>[]>;
+	};
+	/**
+	 * Registers a declared worker for a task.
+	 */
+	work: <TaskName extends PgBossTaskName<Tasks>>(
+		task: TaskName,
+	) => Promise<string>;
+}
