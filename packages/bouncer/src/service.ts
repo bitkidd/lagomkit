@@ -1,4 +1,21 @@
-import type { BouncerPolicy, BouncerServiceContract } from './types.js';
+import type {
+	BouncerPolicy,
+	BouncerPolicyMap,
+	BouncerPolicyDefinition,
+	BouncerResolvedPolicies,
+	BouncerServiceContract,
+} from './types.js';
+
+/**
+ * Creates a policy declaration.
+ */
+export function definePolicy<Handlers extends BouncerPolicy>(config: {
+	handlers: Handlers;
+}): BouncerPolicyDefinition<Handlers> {
+	return {
+		handlers: config.handlers,
+	};
+}
 
 /**
  * Creates a typed bouncer service from a policy map.
@@ -7,26 +24,34 @@ import type { BouncerPolicy, BouncerServiceContract } from './types.js';
  * @param config.onException Fallback handler invoked when `authorize` fails.
  */
 export function createBouncerService<
-	AvailablePolicies extends Record<string, BouncerPolicy>,
+	AvailablePolicies extends BouncerPolicyMap,
 >(config: {
 	policies: AvailablePolicies;
 	onException?: () => void;
-}): BouncerServiceContract<AvailablePolicies> {
+}): BouncerServiceContract<BouncerResolvedPolicies<AvailablePolicies>> {
+	const policies = new Map<string, BouncerPolicy>();
+
+	for (const [policyKey, policyEntry] of Object.entries(config.policies)) {
+		const handlers: BouncerPolicy = policyEntry.handlers;
+		policies.set(policyKey, handlers);
+	}
+
 	const resolveAction = <
-		PolicyKey extends keyof AvailablePolicies & string,
-		ActionKey extends keyof AvailablePolicies[PolicyKey] & string,
+		PolicyKey extends keyof BouncerResolvedPolicies<AvailablePolicies> & string,
+		ActionKey extends
+			keyof BouncerResolvedPolicies<AvailablePolicies>[PolicyKey] & string,
 	>(
 		policyName: PolicyKey,
 		actionName: ActionKey,
-	): AvailablePolicies[PolicyKey][ActionKey] => {
-		const policy = config.policies[policyName];
+	): BouncerResolvedPolicies<AvailablePolicies>[PolicyKey][ActionKey] => {
+		const policy = policies.get(policyName);
 
 		if (!policy) {
 			throw new Error(`Bouncer policy "${String(policyName)}" is not defined`);
 		}
 
 		const action = policy[actionName] as
-			| AvailablePolicies[PolicyKey][ActionKey]
+			| BouncerResolvedPolicies<AvailablePolicies>[PolicyKey][ActionKey]
 			| undefined;
 
 		if (typeof action !== 'function') {
@@ -40,12 +65,16 @@ export function createBouncerService<
 
 	return {
 		check: <
-			PolicyKey extends keyof AvailablePolicies & string,
-			ActionKey extends keyof AvailablePolicies[PolicyKey] & string,
+			PolicyKey extends keyof BouncerResolvedPolicies<AvailablePolicies> &
+				string,
+			ActionKey extends
+				keyof BouncerResolvedPolicies<AvailablePolicies>[PolicyKey] & string,
 		>(params: {
 			policy: PolicyKey;
 			action: ActionKey;
-			data?: Parameters<AvailablePolicies[PolicyKey][ActionKey]>[0];
+			data?: Parameters<
+				BouncerResolvedPolicies<AvailablePolicies>[PolicyKey][ActionKey]
+			>[0];
 		}): boolean => {
 			const checkedAction = resolveAction(params.policy, params.action);
 
@@ -53,12 +82,16 @@ export function createBouncerService<
 		},
 
 		authorize: <
-			PolicyKey extends keyof AvailablePolicies & string,
-			ActionKey extends keyof AvailablePolicies[PolicyKey] & string,
+			PolicyKey extends keyof BouncerResolvedPolicies<AvailablePolicies> &
+				string,
+			ActionKey extends
+				keyof BouncerResolvedPolicies<AvailablePolicies>[PolicyKey] & string,
 		>(params: {
 			policy: PolicyKey;
 			action: ActionKey;
-			data?: Parameters<AvailablePolicies[PolicyKey][ActionKey]>[0];
+			data?: Parameters<
+				BouncerResolvedPolicies<AvailablePolicies>[PolicyKey][ActionKey]
+			>[0];
 			onException?: () => void;
 		}): void => {
 			const checkedAction = resolveAction(params.policy, params.action);

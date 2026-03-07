@@ -9,6 +9,31 @@ export type BouncerAction<Data = any> = (data?: Data) => boolean;
 export type BouncerPolicy = Record<string, BouncerAction>;
 
 /**
+ * Policy declaration shape used by `definePolicy`.
+ */
+export interface BouncerPolicyDefinition<Handlers extends BouncerPolicy> {
+	handlers: Handlers;
+}
+
+/**
+ * Policy map accepted in `createBouncerService({ policies })`.
+ */
+export type BouncerPolicyMap = Record<
+	string,
+	BouncerPolicyDefinition<BouncerPolicy>
+>;
+
+/**
+ * Resolved action map extracted from policy entries.
+ */
+export type BouncerResolvedPolicies<Policies extends BouncerPolicyMap> = {
+	[PolicyKey in keyof Policies &
+		string]: Policies[PolicyKey] extends BouncerPolicyDefinition<infer Handlers>
+		? Handlers
+		: never;
+};
+
+/**
  * Typed bouncer service API.
  */
 export interface BouncerServiceContract<

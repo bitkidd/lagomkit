@@ -5,18 +5,20 @@ Small, typed authorization toolkit with policy-based checks and a lightweight se
 ## Quick start
 
 ```ts
-import { createBouncerService } from '@lagomkit/bouncer';
+import { createBouncerService, definePolicy } from '@lagomkit/bouncer';
 
 const bouncer = createBouncerService({
 	policies: {
-		post: {
-			create: (input?: { role: 'admin' | 'editor' | 'viewer' }) => {
-				return input?.role === 'admin' || input?.role === 'editor';
+		post: definePolicy({
+			handlers: {
+				create: (input?: { role: 'admin' | 'editor' | 'viewer' }) => {
+					return input?.role === 'admin' || input?.role === 'editor';
+				},
+				delete: (input?: { role: 'admin' | 'editor' | 'viewer' }) => {
+					return input?.role === 'admin';
+				},
 			},
-			delete: (input?: { role: 'admin' | 'editor' | 'viewer' }) => {
-				return input?.role === 'admin';
-			},
-		},
+		}),
 	},
 });
 
@@ -42,13 +44,19 @@ bouncer.authorize({
 
 Creates a bouncer service with strongly typed policy and action access.
 
-- `config.policies`: policy map keyed by policy name
+- `config.policies`: policy map keyed by policy key where each value is `definePolicy({ ... })`
 - `config.onException`: optional fallback handler for unauthorized actions
 
 Returned methods:
 
 - `check(input)` returns `true` or `false`
 - `authorize(input)` throws when unauthorized (or calls an exception handler)
+
+### `definePolicy({ handlers })`
+
+Creates a policy declaration with typed action handlers.
+
+- `handlers`: policy action functions
 
 ## Notes
 

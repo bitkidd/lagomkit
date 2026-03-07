@@ -1,13 +1,13 @@
 import { describe, expect, test, vi } from 'vitest';
 
-import { createBouncerService } from '#src/service.js';
+import { createBouncerService, definePolicy } from '#src/service.js';
 import { MockPolicy, MockPolicy2 } from './_helpers.js';
 
 describe('Bouncer::Service', () => {
 	const service = createBouncerService({
 		policies: {
-			MockPolicy,
-			MockPolicy2,
+			MockPolicy: definePolicy({ handlers: MockPolicy }),
+			MockPolicy2: definePolicy({ handlers: MockPolicy2 }),
 		},
 	});
 
@@ -67,8 +67,8 @@ describe('Bouncer::Service', () => {
 		const onException = vi.fn();
 		const localService = createBouncerService({
 			policies: {
-				MockPolicy,
-				MockPolicy2,
+				MockPolicy: definePolicy({ handlers: MockPolicy }),
+				MockPolicy2: definePolicy({ handlers: MockPolicy2 }),
 			},
 			onException,
 		});
@@ -107,5 +107,27 @@ describe('Bouncer::Service', () => {
 		expect(() =>
 			service.authorize({ policy: 'MockPolicy', action: 'throws' }),
 		).toThrowError('Policy exploded');
+	});
+
+	test('should support definePolicy declarations', () => {
+		const localService = createBouncerService({
+			policies: {
+				post: definePolicy({
+					handlers: {
+						create: (input?: { role: 'admin' | 'editor' | 'viewer' }) => {
+							return input?.role === 'admin' || input?.role === 'editor';
+						},
+					},
+				}),
+			},
+		});
+
+		expect(
+			localService.check({
+				policy: 'post',
+				action: 'create',
+				data: { role: 'editor' },
+			}),
+		).toBe(true);
 	});
 });
