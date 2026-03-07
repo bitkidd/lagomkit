@@ -1,6 +1,8 @@
 # @lagomkit/bouncer
 
-Small, typed authorization toolkit with policy-based checks and a lightweight service factory.
+Type-safe authorization toolkit with policy/action checks and a lightweight service factory.
+
+Policies are declared with `definePolicy({ handlers })`, then passed to `createBouncerService({ policies })` for strongly typed `check(...)` and `authorize(...)` calls.
 
 ## Quick start
 
@@ -36,6 +38,10 @@ bouncer.authorize({
 		throw new Error('Not allowed');
 	},
 });
+
+// compile-time payload safety per action
+// @ts-expect-error wrong payload shape for post.delete
+bouncer.check({ policy: 'post', action: 'delete', data: { userId: '1' } });
 ```
 
 ## API
@@ -44,7 +50,7 @@ bouncer.authorize({
 
 Creates a bouncer service with strongly typed policy and action access.
 
-- `config.policies`: policy map keyed by policy key where each value is `definePolicy({ ... })`
+- `config.policies`: policy map keyed by policy name where each value is `definePolicy({ handlers })`
 - `config.onException`: optional fallback handler for unauthorized actions
 
 Returned methods:
@@ -60,6 +66,7 @@ Creates a policy declaration with typed action handlers.
 
 ## Notes
 
+- Policies must be declared via `definePolicy({ handlers })`.
 - If `authorize` fails and no exception handler exists, an error is thrown.
 - Unknown policy names and action names throw explicit errors.
 - Policy action input types are inferred from your policy definitions.
