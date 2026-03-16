@@ -9,6 +9,7 @@ Type-safe `pg-boss` service for declaring tasks once and getting fully typed `se
 - declare task payload and worker logic in one place
 - get task-name and payload autocomplete from `send({ task, data })`
 - auto-register workers on `start()` (or opt out with `autoWork: false`)
+- auto-create declared queues before workers start polling them
 - still access the raw `pg-boss` client through `client()`
 
 ## Quick start
@@ -87,4 +88,5 @@ Returned methods:
 - Task names are validated at runtime and throw when unknown.
 - Payload types are inferred from `defineTask<Data>({ ... })` declarations.
 - Workers can auto-start on `start()` when `autoWork` is not `false`.
+- Declared queues are created automatically before `work()` registers a worker.
 - This package is intentionally thin and delegates behavior to `pg-boss`.

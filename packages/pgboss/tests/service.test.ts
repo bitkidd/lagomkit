@@ -10,6 +10,9 @@ function createBossMock(): PgBossClientContract {
 	let workerSequence = 0;
 
 	return {
+		createQueue: vi.fn(async () => {
+			return undefined;
+		}),
 		start: vi.fn(async () => {
 			return undefined;
 		}),
@@ -165,6 +168,7 @@ describe('PgBoss::Service', () => {
 		const workerId = await service.work('email.sendWelcome');
 
 		expect(workerId).toBe('worker_1');
+		expect(boss.createQueue).toHaveBeenCalledWith('queues.email.sendWelcome');
 		expect(boss.work).toHaveBeenCalledWith(
 			'queues.email.sendWelcome',
 			{ pollingIntervalSeconds: 5 },
@@ -184,6 +188,21 @@ describe('PgBoss::Service', () => {
 		expect(boss.work).toHaveBeenCalledTimes(1);
 	});
 
+	test('should collapse concurrent worker registration for the same task', async () => {
+		const boss = createBossMock();
+		const service = createPgBossService({ boss, tasks, autoWork: false });
+
+		const [workerId1, workerId2] = await Promise.all([
+			service.work('billing.syncInvoice'),
+			service.work('billing.syncInvoice'),
+		]);
+
+		expect(workerId1).toBe('worker_1');
+		expect(workerId2).toBe('worker_1');
+		expect(boss.createQueue).toHaveBeenCalledTimes(1);
+		expect(boss.work).toHaveBeenCalledTimes(1);
+	});
+
 	test('should auto-register declared workers on start by default', async () => {
 		const boss = createBossMock();
 		const service = createPgBossService({ boss, tasks });
@@ -191,7 +210,19 @@ describe('PgBoss::Service', () => {
 		await service.start();
 
 		expect(boss.start).toHaveBeenCalledTimes(1);
+		expect(boss.createQueue).toHaveBeenCalledTimes(3);
 		expect(boss.work).toHaveBeenCalledTimes(3);
+	});
+
+	test('should create queue only once for repeated worker registration', async () => {
+		const boss = createBossMock();
+		const service = createPgBossService({ boss, tasks, autoWork: false });
+
+		await service.work('billing.syncInvoice');
+		await service.work('billing.syncInvoice');
+
+		expect(boss.createQueue).toHaveBeenCalledTimes(1);
+		expect(boss.createQueue).toHaveBeenCalledWith('billing.syncInvoice');
 	});
 
 	test('should skip auto worker registration when autoWork is false', async () => {
@@ -230,6 +261,22 @@ describe('PgBoss::Service', () => {
 
 		expect(boss.start).toHaveBeenCalledTimes(1);
 		expect(boss.stop).toHaveBeenCalledWith({ graceful: true });
+	});
+
+	test('should clear worker state even when stop fails', async () => {
+		const boss = createBossMock();
+		boss.stop = vi.fn(async () => {
+			throw new Error('stop failed');
+		});
+		const service = createPgBossService({ boss, tasks, autoWork: false });
+
+		await service.work('billing.syncInvoice');
+
+		await expect(service.stop()).rejects.toThrowError('stop failed');
+
+		await service.work('billing.syncInvoice');
+
+		expect(boss.work).toHaveBeenCalledTimes(2);
 	});
 
 	test('should provide type-safe task payloads', async () => {

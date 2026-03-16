@@ -19,6 +19,50 @@ import type {
 	PgBossTaskPayload,
 } from './types.js';
 
+type PgBossTaskContext<
+	Tasks extends PgBossTaskMap,
+	TaskName extends PgBossTaskName<Tasks>,
+> = {
+	task: TaskName;
+	declaration: Tasks[TaskName];
+	queue: string;
+};
+
+/**
+ * Builds a pg-boss client from either an injected instance or constructor config.
+ */
+function buildBossClient<Tasks extends PgBossTaskMap>(
+	config: CreatePgBossServiceConfig<Tasks>,
+): PgBossClientContract {
+	if ('boss' in config) {
+		return config.boss;
+	}
+
+	if ('connectionString' in config) {
+		if (config.options) {
+			const options: ConstructorOptions = {
+				...config.options,
+				connectionString: config.connectionString,
+			};
+
+			return new PgBoss(options);
+		}
+
+		return new PgBoss(config.connectionString);
+	}
+
+	return new PgBoss(config.options);
+}
+
+/**
+ * Converts omitted payloads to `null`, which matches pg-boss job data semantics.
+ */
+function normalizeTaskPayload<Data extends PgBossTaskPayload>(
+	data: Data | undefined,
+): Exclude<Data, undefined> | null {
+	return data === undefined ? null : (data as Exclude<Data, undefined>);
+}
+
 /**
  * Creates a typed task declaration.
  */
@@ -40,28 +84,10 @@ export function defineTask<Data extends PgBossTaskPayload>(config: {
 export function createPgBossService<Tasks extends PgBossTaskMap>(
 	config: CreatePgBossServiceConfig<Tasks>,
 ): PgBossServiceContract<Tasks> {
-	const boss: PgBossClientContract = (() => {
-		if ('boss' in config) {
-			return config.boss;
-		}
-
-		if ('connectionString' in config) {
-			if (config.options) {
-				const options: ConstructorOptions = {
-					...config.options,
-					connectionString: config.connectionString,
-				};
-
-				return new PgBoss(options);
-			}
-
-			return new PgBoss(config.connectionString);
-		}
-
-		return new PgBoss(config.options);
-	})();
-
-	const workers = new Map<string, string>();
+	const boss = buildBossClient(config);
+	const workerIds = new Map<string, string>();
+	const workerRegistrations = new Map<string, Promise<string>>();
+	const queueCreation = new Map<string, Promise<void>>();
 
 	const assertTask = <TaskName extends PgBossTaskName<Tasks>>(
 		task: TaskName,
@@ -71,7 +97,7 @@ export function createPgBossService<Tasks extends PgBossTaskMap>(
 		}
 	};
 
-	const getTask = <TaskName extends PgBossTaskName<Tasks>>(
+	const getTaskDeclaration = <TaskName extends PgBossTaskName<Tasks>>(
 		task: TaskName,
 	): Tasks[TaskName] => {
 		assertTask(task);
@@ -81,7 +107,7 @@ export function createPgBossService<Tasks extends PgBossTaskMap>(
 	const getQueueName = <TaskName extends PgBossTaskName<Tasks>>(
 		task: TaskName,
 	): string => {
-		const taskDeclaration = getTask(task);
+		const taskDeclaration = getTaskDeclaration(task);
 
 		if (
 			taskDeclaration.name &&
@@ -94,11 +120,49 @@ export function createPgBossService<Tasks extends PgBossTaskMap>(
 		return task;
 	};
 
+	const getTaskContext = <TaskName extends PgBossTaskName<Tasks>>(
+		task: TaskName,
+	): PgBossTaskContext<Tasks, TaskName> => {
+		const declaration = getTaskDeclaration(task);
+
+		return {
+			declaration,
+			queue: getQueueName(task),
+			task,
+		};
+	};
+
+	/**
+	 * Ensures a queue exists before sends or workers depend on it.
+	 */
+	const ensureQueue = async (queue: string): Promise<string> => {
+		const existingCreation = queueCreation.get(queue);
+
+		if (existingCreation) {
+			await existingCreation;
+			return queue;
+		}
+
+		const creation = Promise.resolve(boss.createQueue(queue)).then(
+			() => undefined,
+		);
+		queueCreation.set(queue, creation);
+
+		try {
+			await creation;
+		} catch (error) {
+			queueCreation.delete(queue);
+			throw error;
+		}
+
+		return queue;
+	};
+
 	const send = async <TaskName extends PgBossTaskName<Tasks>>(
 		args: PgBossSendArgs<Tasks, TaskName>,
 	): Promise<string | null> => {
-		const queue = getQueueName(args.task);
-		const data = args.data === undefined ? null : args.data;
+		const { queue } = getTaskContext(args.task);
+		const data = normalizeTaskPayload(args.data);
 
 		return boss.send(queue, data, args.options);
 	};
@@ -109,18 +173,20 @@ export function createPgBossService<Tasks extends PgBossTaskMap>(
 			value: Date | string | number;
 		} & PgBossTaskArgs<Tasks, TaskName>,
 	): Promise<string | null> => {
-		const queue = getQueueName(args.task);
-		const data = args.data === undefined ? null : args.data;
+		const { queue } = getTaskContext(args.task);
+		const data = normalizeTaskPayload(args.data);
+		const options = args.options ?? null;
+		const { value } = args;
 
-		if (args.value instanceof Date) {
-			return boss.sendAfter(queue, data, args.options ?? null, args.value);
+		if (value instanceof Date) {
+			return boss.sendAfter(queue, data, options, value);
 		}
 
-		if (typeof args.value === 'string') {
-			return boss.sendAfter(queue, data, args.options ?? null, args.value);
+		if (typeof value === 'string') {
+			return boss.sendAfter(queue, data, options, value);
 		}
 
-		return boss.sendAfter(queue, data, args.options ?? null, args.value);
+		return boss.sendAfter(queue, data, options, value);
 	};
 
 	const sendThrottled = async <TaskName extends PgBossTaskName<Tasks>>(
@@ -130,8 +196,8 @@ export function createPgBossService<Tasks extends PgBossTaskMap>(
 			key?: string;
 		} & PgBossTaskArgs<Tasks, TaskName>,
 	): Promise<string | null> => {
-		const queue = getQueueName(args.task);
-		const data = args.data === undefined ? null : args.data;
+		const { queue } = getTaskContext(args.task);
+		const data = normalizeTaskPayload(args.data);
 
 		return boss.sendThrottled(
 			queue,
@@ -149,8 +215,8 @@ export function createPgBossService<Tasks extends PgBossTaskMap>(
 			key?: string;
 		} & PgBossTaskArgs<Tasks, TaskName>,
 	): Promise<string | null> => {
-		const queue = getQueueName(args.task);
-		const data = args.data === undefined ? null : args.data;
+		const { queue } = getTaskContext(args.task);
+		const data = normalizeTaskPayload(args.data);
 
 		return boss.sendDebounced(
 			queue,
@@ -165,6 +231,9 @@ export function createPgBossService<Tasks extends PgBossTaskMap>(
 		task: TaskName,
 		options: FetchOptions & { includeMetadata: true },
 	): Promise<JobWithMetadata<PgBossTaskData<Tasks, TaskName>>[]>;
+	/**
+	 * Fetches jobs from the resolved queue while preserving the task payload type.
+	 */
 	function fetch<TaskName extends PgBossTaskName<Tasks>>(
 		task: TaskName,
 		options?: FetchOptions,
@@ -175,7 +244,7 @@ export function createPgBossService<Tasks extends PgBossTaskMap>(
 	):
 		| Promise<Job<PgBossTaskData<Tasks, TaskName>>[]>
 		| Promise<JobWithMetadata<PgBossTaskData<Tasks, TaskName>>[]> {
-		const queue = getQueueName(task);
+		const { queue } = getTaskContext(task);
 
 		if (options?.includeMetadata === true) {
 			return boss.fetch<PgBossTaskData<Tasks, TaskName>>(
@@ -190,28 +259,46 @@ export function createPgBossService<Tasks extends PgBossTaskMap>(
 	const work = async <TaskName extends PgBossTaskName<Tasks>>(
 		task: TaskName,
 	): Promise<string> => {
-		const existingWorkerId = workers.get(task);
+		const existingWorkerId = workerIds.get(task);
 
 		if (existingWorkerId) {
 			return existingWorkerId;
 		}
 
-		const taskDeclaration = getTask(task);
-		const queue = getQueueName(task);
-		const workerId = taskDeclaration.options
-			? await boss.work<PgBossTaskData<Tasks, TaskName>>(
-					queue,
-					taskDeclaration.options,
-					taskDeclaration.handler,
-				)
-			: await boss.work<PgBossTaskData<Tasks, TaskName>>(
-					queue,
-					taskDeclaration.handler,
-				);
+		const existingRegistration = workerRegistrations.get(task);
 
-		workers.set(task, workerId);
+		if (existingRegistration) {
+			return existingRegistration;
+		}
 
-		return workerId;
+		const registration = (async (): Promise<string> => {
+			const { declaration, queue } = getTaskContext(task);
+			await ensureQueue(queue);
+
+			const workerId = declaration.options
+				? await boss.work<PgBossTaskData<Tasks, TaskName>>(
+						queue,
+						declaration.options,
+						declaration.handler,
+					)
+				: await boss.work<PgBossTaskData<Tasks, TaskName>>(
+						queue,
+						declaration.handler,
+					);
+
+			workerIds.set(task, workerId);
+
+			return workerId;
+		})();
+
+		workerRegistrations.set(task, registration);
+
+		try {
+			return await registration;
+		} catch (error) {
+			workerRegistrations.delete(task);
+			throw error;
+		}
 	};
 
 	const start = async (): Promise<void> => {
@@ -229,8 +316,12 @@ export function createPgBossService<Tasks extends PgBossTaskMap>(
 	};
 
 	const stop = async (options?: StopOptions): Promise<void> => {
-		await boss.stop(options);
-		workers.clear();
+		try {
+			await boss.stop(options);
+		} finally {
+			workerIds.clear();
+			workerRegistrations.clear();
+		}
 	};
 
 	return {

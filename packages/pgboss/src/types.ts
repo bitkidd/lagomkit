@@ -18,8 +18,17 @@ export type PgBossTaskPayload = object | null | undefined;
  * Task declaration used for payload inference and worker registration.
  */
 export type PgBossTask<Data extends PgBossTaskPayload = PgBossTaskPayload> = {
+	/**
+	 * Optional queue name override. When omitted, the task map key is used.
+	 */
 	readonly name?: string;
+	/**
+	 * Worker polling options passed through to `pg-boss.work(...)`.
+	 */
 	readonly options?: WorkOptions;
+	/**
+	 * Worker implementation for this task.
+	 */
 	readonly handler: WorkHandler<Data>;
 };
 
@@ -81,13 +90,29 @@ export type PgBossTaskArgs<
  * Minimal pg-boss client surface used by the service.
  */
 export interface PgBossClientContract {
+	/**
+	 * Creates a queue if it does not already exist.
+	 */
+	createQueue: (name: string) => Promise<unknown>;
+	/**
+	 * Starts the underlying pg-boss instance.
+	 */
 	start: () => Promise<unknown>;
+	/**
+	 * Stops the underlying pg-boss instance.
+	 */
 	stop: (options?: StopOptions) => Promise<void>;
+	/**
+	 * Sends a job to a queue.
+	 */
 	send: (
 		name: string,
 		data?: object | null,
 		options?: SendOptions,
 	) => Promise<string | null>;
+	/**
+	 * Sends a job to start after a delay or point in time.
+	 */
 	sendAfter: {
 		(
 			name: string,
@@ -108,6 +133,9 @@ export interface PgBossClientContract {
 			value: number,
 		): Promise<string | null>;
 	};
+	/**
+	 * Sends a throttled job.
+	 */
 	sendThrottled: (
 		name: string,
 		data: object | null,
@@ -115,6 +143,9 @@ export interface PgBossClientContract {
 		seconds: number,
 		key?: string,
 	) => Promise<string | null>;
+	/**
+	 * Sends a debounced job.
+	 */
 	sendDebounced: (
 		name: string,
 		data: object | null,
@@ -122,6 +153,9 @@ export interface PgBossClientContract {
 		seconds: number,
 		key?: string,
 	) => Promise<string | null>;
+	/**
+	 * Fetches queued jobs.
+	 */
 	fetch: {
 		<T>(
 			name: string,
@@ -129,12 +163,15 @@ export interface PgBossClientContract {
 		): Promise<JobWithMetadata<T>[]>;
 		<T>(name: string, options?: FetchOptions): Promise<Job<T>[]>;
 	};
+	/**
+	 * Registers a worker for a queue.
+	 */
 	work: {
-		<ReqData, ResData = any>(
+		<ReqData, ResData = unknown>(
 			name: string,
 			handler: WorkHandler<ReqData, ResData>,
 		): Promise<string>;
-		<ReqData, ResData = any>(
+		<ReqData, ResData = unknown>(
 			name: string,
 			options: WorkOptions,
 			handler: WorkHandler<ReqData, ResData>,
@@ -147,19 +184,49 @@ export interface PgBossClientContract {
  */
 export type CreatePgBossServiceConfig<Tasks extends PgBossTaskMap> =
 	| {
+			/**
+			 * Declared tasks handled by the service.
+			 */
 			tasks: Tasks;
+			/**
+			 * Whether `start()` should auto-register all declared workers.
+			 */
 			autoWork?: boolean;
+			/**
+			 * Existing pg-boss client to wrap.
+			 */
 			boss: PgBossClientContract;
 	  }
 	| {
+			/**
+			 * Declared tasks handled by the service.
+			 */
 			tasks: Tasks;
+			/**
+			 * Whether `start()` should auto-register all declared workers.
+			 */
 			autoWork?: boolean;
+			/**
+			 * Postgres connection string used to create an internal pg-boss client.
+			 */
 			connectionString: string;
+			/**
+			 * Extra pg-boss constructor options when using `connectionString`.
+			 */
 			options?: Omit<ConstructorOptions, 'connectionString'>;
 	  }
 	| {
+			/**
+			 * Declared tasks handled by the service.
+			 */
 			tasks: Tasks;
+			/**
+			 * Whether `start()` should auto-register all declared workers.
+			 */
 			autoWork?: boolean;
+			/**
+			 * Full pg-boss constructor options used to create an internal client.
+			 */
 			options: ConstructorOptions;
 	  };
 
