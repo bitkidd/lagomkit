@@ -116,12 +116,53 @@ describe('MemoryLimiterDriver', () => {
 
 		await expect(
 			limiter.createTopic({ key: '', limit: 1, period: 1 }),
-		).rejects.toThrow('Limiter topic must be a non-empty string');
+		).rejects.toThrow('topic must be a non-empty string');
 		await expect(
 			limiter.createTopic({ key: 'x', limit: 0, period: 1 }),
-		).rejects.toThrow('Limiter limit must be greater than 0');
+		).rejects.toThrow('limit must be greater than 0');
 		await expect(
 			limiter.createTopic({ key: 'x', limit: 1, period: 0 }),
-		).rejects.toThrow('Limiter period must be greater than 0');
+		).rejects.toThrow('period must be greater than 0');
+	});
+
+	it('should validate check input', async () => {
+		const limiter = createMemoryLimiterDriver();
+		await limiter.createTopic({ key: 'test-topic' });
+
+		await expect(
+			limiter.check({ topic: '', identifier: 'id' }),
+		).rejects.toThrow('topic must be a non-empty string');
+		await expect(
+			limiter.check({ topic: 'test-topic', identifier: '' }),
+		).rejects.toThrow('identifier must be a non-empty string');
+	});
+
+	it('should validate hasTopic input', async () => {
+		const limiter = createMemoryLimiterDriver();
+
+		await expect(limiter.hasTopic({ key: '' })).rejects.toThrow(
+			'topic must be a non-empty string',
+		);
+	});
+
+	it('should report hasExceptionHandler accurately', async () => {
+		const limiter = createMemoryLimiterDriver();
+		expect(limiter.hasExceptionHandler()).toBe(false);
+
+		const handler = vi.fn();
+		limiter.setExceptionHandler(handler);
+		expect(limiter.hasExceptionHandler()).toBe(true);
+	});
+
+	it('should protect getTopic from external mutation', async () => {
+		const limiter = createMemoryLimiterDriver();
+		await limiter.createTopic({ key: 'test-topic' });
+		await limiter.check({ topic: 'test-topic', identifier: 'user-1' });
+
+		const snapshot = await limiter.getTopic({ key: 'test-topic' });
+		snapshot!.usage.set('mutated', [Date.now()]);
+
+		const fresh = await limiter.getTopic({ key: 'test-topic' });
+		expect(fresh!.usage.has('mutated')).toBe(false);
 	});
 });

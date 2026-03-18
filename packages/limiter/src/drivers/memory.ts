@@ -1,21 +1,10 @@
+import * as v from 'valibot';
 import type { LimiterDriverContract } from '../types.js';
-
-/**
- * Configuration for the in-memory limiter driver.
- */
-export type LimiterMemoryDriverConfig = {
-	limit?: number;
-	period?: number;
-	onException?: () => void;
-	cleanupInterval?: number;
-};
-
-type LimiterMemoryDriverResolvedConfig = {
-	limit: number;
-	period: number;
-	onException: (() => void) | undefined;
-	cleanupInterval: number;
-};
+import {
+	parseLimiterMemoryDriverConfig,
+	validateNonEmptyString,
+	type LimiterMemoryDriverConfig,
+} from '../helpers.js';
 
 type LimiterTopic = {
 	limit: number;
@@ -23,17 +12,12 @@ type LimiterTopic = {
 	usage: Map<string, number[]>;
 };
 
-function ensureNonEmpty(value: string, label: string): void {
-	if (!value.trim()) {
-		throw new Error(`Limiter ${label} must be a non-empty string`);
-	}
-}
-
-function ensurePositive(value: number, label: string): void {
-	if (!Number.isFinite(value) || value <= 0) {
-		throw new Error(`Limiter ${label} must be greater than 0`);
-	}
-}
+type ResolvedConfig = {
+	limit: number;
+	period: number;
+	onException: (() => void) | undefined;
+	cleanupInterval: number;
+};
 
 function pruneTimestamps(
 	timestamps: number[],
@@ -76,29 +60,20 @@ function resolveCheckResult(params: {
 	};
 }
 
-/**
- * Creates an in-memory limiter driver.
- *
- * @param config.limit Default max requests per topic window.
- * @param config.period Default window length in seconds.
- * @param config.onException Fallback handler for unauthorized calls.
- * @param config.cleanupInterval Background stale-entry cleanup interval in seconds.
- */
 export function createMemoryLimiterDriver(
 	config?: LimiterMemoryDriverConfig,
 ): LimiterDriverContract {
 	const topics = new Map<string, LimiterTopic>();
-	const resolvedConfig: LimiterMemoryDriverResolvedConfig = {
-		limit: 100,
-		period: 60,
-		onException: undefined,
-		cleanupInterval: 30,
-		...config,
+	const parsed = parseLimiterMemoryDriverConfig(config ?? {});
+	const resolvedConfig: ResolvedConfig = {
+		...{
+			limit: 100,
+			period: 60,
+			onException: undefined,
+			cleanupInterval: 30,
+		},
+		...parsed,
 	};
-
-	ensurePositive(resolvedConfig.limit, 'limit');
-	ensurePositive(resolvedConfig.period, 'period');
-	ensurePositive(resolvedConfig.cleanupInterval, 'cleanup interval');
 
 	const cleanup: LimiterDriverContract['cleanup'] = async ({ topic } = {}) => {
 		const now = Date.now();
@@ -135,8 +110,8 @@ export function createMemoryLimiterDriver(
 		topic,
 		identifier,
 	}) => {
-		ensureNonEmpty(topic, 'topic');
-		ensureNonEmpty(identifier, 'identifier');
+		validateNonEmptyString(topic, 'topic');
+		validateNonEmptyString(identifier, 'identifier');
 
 		const now = Date.now();
 		const foundTopic = topics.get(topic);
@@ -145,14 +120,17 @@ export function createMemoryLimiterDriver(
 			throw new Error(`Topic not found: ${topic}`);
 		}
 
-		const { limit, period, usage } = foundTopic;
-		const recent = pruneTimestamps(usage.get(identifier) ?? [], now, period);
+		const recent = pruneTimestamps(
+			foundTopic.usage.get(identifier) ?? [],
+			now,
+			foundTopic.period,
+		);
 
-		if (recent.length >= limit) {
-			usage.set(identifier, recent);
+		if (recent.length >= foundTopic.limit) {
+			foundTopic.usage.set(identifier, recent);
 			return resolveCheckResult({
-				limit,
-				period,
+				limit: foundTopic.limit,
+				period: foundTopic.period,
 				now,
 				recent,
 				limited: true,
@@ -160,11 +138,11 @@ export function createMemoryLimiterDriver(
 		}
 
 		recent.push(now);
-		usage.set(identifier, recent);
+		foundTopic.usage.set(identifier, recent);
 
 		return resolveCheckResult({
-			limit,
-			period,
+			limit: foundTopic.limit,
+			period: foundTopic.period,
 			now,
 			recent,
 			limited: false,
@@ -187,21 +165,29 @@ export function createMemoryLimiterDriver(
 			}
 		},
 		hasTopic: async ({ key }) => {
-			ensureNonEmpty(key, 'topic');
+			validateNonEmptyString(key, 'topic');
 			return topics.has(key);
 		},
 		getTopic: async ({ key }) => {
-			ensureNonEmpty(key, 'topic');
-			return topics.get(key) ?? null;
+			validateNonEmptyString(key, 'topic');
+			const found = topics.get(key);
+			if (!found) return null;
+			return {
+				...found,
+				usage: new Map(found.usage),
+			};
 		},
 		createTopic: async ({ key, limit, period }) => {
-			ensureNonEmpty(key, 'topic');
+			validateNonEmptyString(key, 'topic');
 
-			const resolvedLimit = limit ?? resolvedConfig.limit;
-			const resolvedPeriod = period ?? resolvedConfig.period;
-
-			ensurePositive(resolvedLimit, 'limit');
-			ensurePositive(resolvedPeriod, 'period');
+			const resolvedLimit = v.parse(
+				v.pipe(v.number(), v.minValue(0.0001, 'limit must be greater than 0')),
+				limit ?? resolvedConfig.limit,
+			);
+			const resolvedPeriod = v.parse(
+				v.pipe(v.number(), v.minValue(0.0001, 'period must be greater than 0')),
+				period ?? resolvedConfig.period,
+			);
 
 			if (!topics.has(key)) {
 				topics.set(key, {
