@@ -4,130 +4,106 @@ import { createBouncerService, definePolicy } from '#src/service.js';
 import { MockPolicy, MockPolicy2 } from './_helpers.js';
 
 describe('Bouncer::Service', () => {
-	const service = createBouncerService({
-		policies: {
-			MockPolicy: definePolicy({ handlers: MockPolicy }),
-			MockPolicy2: definePolicy({ handlers: MockPolicy2 }),
-		},
-	});
+	const service = createBouncerService();
+	const mockPolicy = definePolicy({ handlers: MockPolicy });
+	const mockPolicy2 = definePolicy({ handlers: MockPolicy2 });
 
 	test('should return check method result', () => {
-		expect(service.check({ policy: 'MockPolicy', action: 'authorized' })).toBe(
+		expect(service.check(mockPolicy, 'authorized')).toBe(true);
+	});
+
+	test('should pass data to policy action', () => {
+		expect(service.check(mockPolicy, 'withData', { hello: 'world' })).toBe(
 			true,
 		);
 	});
 
-	test('should pass data to policy action', () => {
-		expect(
-			service.check({
-				policy: 'MockPolicy',
-				action: 'withData',
-				data: { hello: 'world' },
-			}),
-		).toBe(true);
-	});
-
-	test('should throw on unknown policy check', () => {
+	test('should throw on unknown action check', () => {
 		expect(() =>
-			// @ts-expect-error checking undefined policy
-			service.check({ policy: 'MockPolicy3', action: 'authorized' }),
-		).toThrowError('Bouncer policy "MockPolicy3" is not defined');
-	});
-
-	test('should throw on unknown policy action check', () => {
-		expect(() =>
-			// @ts-expect-error checking undefined policy
-			service.check({ policy: 'MockPolicy', action: 'authorizedd' }),
-		).toThrowError(
-			'Bouncer policy "MockPolicy" action "authorizedd" is not defined',
-		);
+			service.check(mockPolicy, 'authorizedd' as keyof typeof MockPolicy),
+		).toThrowError('Bouncer action "authorizedd" is not defined');
 	});
 
 	test('should execute authorize method', () => {
 		expect(() =>
-			service.authorize({ policy: 'MockPolicy', action: 'unauthorizedThrow' }),
-		).toThrowError(
-			'Bouncer policy "MockPolicy" action "unauthorizedThrow" is not authorized',
-		);
+			service.authorize(mockPolicy, 'unauthorizedThrow'),
+		).toThrowError('Unauthorized action');
 	});
 
 	test('should execute authorize method and throw', () => {
 		expect(() =>
-			service.authorize({
-				policy: 'MockPolicy',
-				action: 'unauthorizedThrow',
-				onException: () => {
-					throw new Error('Hello World');
+			service.authorize(mockPolicy, 'unauthorizedThrow', undefined, {
+				onException: (message) => {
+					throw new Error(message ?? 'Hello World');
 				},
 			}),
-		).toThrowError('Hello World');
+		).toThrowError('Unauthorized action');
+	});
+
+	test('should execute policy-level onException handler', () => {
+		const onException = vi.fn();
+		const localPolicy = definePolicy({
+			handlers: MockPolicy,
+			onException,
+		});
+
+		service.authorize(localPolicy, 'unauthorizedThrow');
+
+		expect(onException).toHaveBeenCalledTimes(1);
+		expect(onException).toHaveBeenCalledWith('Unauthorized action');
 	});
 
 	test('should execute service-level onException handler', () => {
 		const onException = vi.fn();
-		const localService = createBouncerService({
-			policies: {
-				MockPolicy: definePolicy({ handlers: MockPolicy }),
-				MockPolicy2: definePolicy({ handlers: MockPolicy2 }),
-			},
-			onException,
-		});
+		const localService = createBouncerService({ onException });
 
-		localService.authorize({
-			policy: 'MockPolicy',
-			action: 'unauthorizedThrow',
-		});
+		localService.authorize(mockPolicy, 'unauthorizedThrow');
 
 		expect(onException).toHaveBeenCalledTimes(1);
+		expect(onException).toHaveBeenCalledWith('Unauthorized action');
 	});
 
-	test('should throw on unknown policy authorize', () => {
+	test('should use default message when policy result omits one', () => {
 		expect(() =>
-			// @ts-expect-error checking undefined policy
-			service.authorize({ policy: 'MockPolicy3', action: 'authorized' }),
-		).toThrowError('Bouncer policy "MockPolicy3" is not defined');
+			service.authorize(mockPolicy, 'unauthorizedDefaultMessage'),
+		).toThrowError('Unauthorized');
 	});
 
-	test('should throw on unknown policy action authorize', () => {
+	test('should throw on unknown action authorize', () => {
 		expect(() =>
-			// @ts-expect-error checking undefined policy
-			service.authorize({ policy: 'MockPolicy', action: 'authorizedd' }),
-		).toThrowError(
-			'Bouncer policy "MockPolicy" action "authorizedd" is not defined',
-		);
+			service.authorize(mockPolicy, 'authorizedd' as keyof typeof MockPolicy),
+		).toThrowError('Bouncer action "authorizedd" is not defined');
 	});
 
 	test('should rethrow policy errors from check', () => {
-		expect(() =>
-			service.check({ policy: 'MockPolicy', action: 'throws' }),
-		).toThrowError('Policy exploded');
+		expect(() => service.check(mockPolicy, 'throws')).toThrowError(
+			'Policy exploded',
+		);
 	});
 
 	test('should rethrow policy errors from authorize', () => {
-		expect(() =>
-			service.authorize({ policy: 'MockPolicy', action: 'throws' }),
-		).toThrowError('Policy exploded');
+		expect(() => service.authorize(mockPolicy, 'throws')).toThrowError(
+			'Policy exploded',
+		);
 	});
 
 	test('should support definePolicy declarations', () => {
-		const localService = createBouncerService({
-			policies: {
-				post: definePolicy({
-					handlers: {
-						create: (input?: { role: 'admin' | 'editor' | 'viewer' }) => {
-							return input?.role === 'admin' || input?.role === 'editor';
-						},
-					},
-				}),
+		const postPolicy = definePolicy({
+			handlers: {
+				create: (input?: { role: 'admin' | 'editor' | 'viewer' }) => {
+					return input?.role === 'admin' || input?.role === 'editor'
+						? { ok: true }
+						: { ok: false, message: 'Post creation is forbidden' };
+				},
 			},
 		});
 
-		expect(
-			localService.check({
-				policy: 'post',
-				action: 'create',
-				data: { role: 'editor' },
-			}),
-		).toBe(true);
+		expect(service.check(postPolicy, 'create', { role: 'editor' })).toBe(true);
+	});
+
+	test('should keep type inference isolated per policy', () => {
+		expect(service.check(mockPolicy2, 'authorized', { world: 'hello' })).toBe(
+			true,
+		);
 	});
 });

@@ -1,7 +1,14 @@
 /**
- * Policy action function that decides whether an operation is allowed.
+ * Policy action result returned by a policy handler.
  */
-export type BouncerAction<Data = any> = (data?: Data) => boolean;
+export type BouncerActionResult =
+	| { ok: true }
+	| { ok: false; message?: string };
+
+/**
+ * Policy action function that returns a structured authorization result.
+ */
+export type BouncerAction<Data = any> = (data?: Data) => BouncerActionResult;
 
 /**
  * Collection of named actions for a single policy.
@@ -13,56 +20,55 @@ export type BouncerPolicy = Record<string, BouncerAction>;
  */
 export interface BouncerPolicyDefinition<Handlers extends BouncerPolicy> {
 	handlers: Handlers;
+	onException?: (message?: string) => void;
 }
 
 /**
- * Policy map accepted in `createBouncerService({ policies })`.
+ * Named action keys available for a given policy definition.
  */
-export type BouncerPolicyMap = Record<
-	string,
-	BouncerPolicyDefinition<BouncerPolicy>
->;
+export type BouncerPolicyActionKey<
+	Policy extends BouncerPolicyDefinition<BouncerPolicy>,
+> = keyof Policy['handlers'] & string;
 
 /**
- * Resolved action map extracted from policy entries.
+ * Input payload inferred for a policy action.
  */
-export type BouncerResolvedPolicies<Policies extends BouncerPolicyMap> = {
-	[PolicyKey in keyof Policies &
-		string]: Policies[PolicyKey] extends BouncerPolicyDefinition<infer Handlers>
-		? Handlers
-		: never;
-};
+export type BouncerPolicyActionData<
+	Policy extends BouncerPolicyDefinition<BouncerPolicy>,
+	ActionKey extends BouncerPolicyActionKey<Policy>,
+> = Parameters<Policy['handlers'][ActionKey]>[0];
 
 /**
  * Typed bouncer service API.
  */
-export interface BouncerServiceContract<
-	AvailablePolicies extends Record<string, BouncerPolicy>,
-> {
+export interface BouncerServiceContract {
 	/**
 	 * Returns `true` when the policy action authorizes the input.
 	 */
 	check: <
-		PolicyKey extends keyof AvailablePolicies & string,
-		ActionKey extends keyof AvailablePolicies[PolicyKey] & string,
-	>(args: {
-		policy: PolicyKey;
-		action: ActionKey;
-		data?: Parameters<AvailablePolicies[PolicyKey][ActionKey]>[0];
-	}) => boolean;
+		Policy extends BouncerPolicyDefinition<BouncerPolicy>,
+		ActionKey extends BouncerPolicyActionKey<Policy>,
+	>(
+		policy: Policy,
+		action: ActionKey,
+		data?: BouncerPolicyActionData<Policy, ActionKey>,
+	) => boolean;
 	/**
 	 * Enforces authorization for a policy action.
 	 *
-	 * When unauthorized, it calls `onException` from params or service config.
+	 * When unauthorized, it calls `onException` from call options, policy config,
+	 * or service config.
 	 * If no handler is configured, it throws.
 	 */
 	authorize: <
-		PolicyKey extends keyof AvailablePolicies & string,
-		ActionKey extends keyof AvailablePolicies[PolicyKey] & string,
-	>(args: {
-		policy: PolicyKey;
-		action: ActionKey;
-		data?: Parameters<AvailablePolicies[PolicyKey][ActionKey]>[0];
-		onException?: () => void;
-	}) => void;
+		Policy extends BouncerPolicyDefinition<BouncerPolicy>,
+		ActionKey extends BouncerPolicyActionKey<Policy>,
+	>(
+		policy: Policy,
+		action: ActionKey,
+		data?: BouncerPolicyActionData<Policy, ActionKey>,
+		options?: {
+			onException?: (message?: string) => void;
+		},
+	) => void;
 }

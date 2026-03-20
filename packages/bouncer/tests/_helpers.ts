@@ -1,35 +1,41 @@
 export const MockPolicy = {
-  authorized: (_: { hello: string }) => {
-    return true;
-  },
+	authorized: (_: { hello: string }) => {
+		return { ok: true };
+	},
 
-  withData: (data?: { hello: string }) => {
-    return data?.hello === 'world';
-  },
+	withData: (data?: { hello: string }) => {
+		return data?.hello === 'world'
+			? { ok: true }
+			: { ok: false, message: 'Hello must be world' };
+	},
 
-  unauthorizedPass: () => {
-    return true;
-  },
+	unauthorizedPass: () => {
+		return { ok: true };
+	},
 
-  unauthorizedThrow: () => {
-    return false;
-  },
+	unauthorizedThrow: () => {
+		return { ok: false, message: 'Unauthorized action' };
+	},
 
-  throws: () => {
-    throw new Error('Policy exploded');
-  },
+	unauthorizedDefaultMessage: () => {
+		return { ok: false };
+	},
+
+	throws: () => {
+		throw new Error('Policy exploded');
+	},
 };
 
 export const MockPolicy2 = {
-  authorized: (_: { world: string }) => {
-    return true;
-  },
+	authorized: (_: { world: string }) => {
+		return { ok: true };
+	},
 
-  unauthorizedPass: () => {
-    return true;
-  },
+	unauthorizedPass: () => {
+		return { ok: true };
+	},
 
-  unauthorizedThrow: () => {
-    return false;
-  },
+	unauthorizedThrow: () => {
+		return { ok: false, message: 'Unauthorized action' };
+	},
 };

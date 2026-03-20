@@ -2,71 +2,67 @@
 
 Type-safe authorization toolkit with policy/action checks and a lightweight service factory.
 
-Policies are declared with `definePolicy({ handlers })`, then passed to `createBouncerService({ policies })` for strongly typed `check(...)` and `authorize(...)` calls.
+Policies are declared with `definePolicy({ handlers })`, then passed directly to `check(...)` and `authorize(...)` for strongly typed action and payload inference.
 
 ## Quick start
 
 ```ts
 import { createBouncerService, definePolicy } from '@lagomkit/bouncer';
 
-const bouncer = createBouncerService({
-	policies: {
-		post: definePolicy({
-			handlers: {
-				create: (input?: { role: 'admin' | 'editor' | 'viewer' }) => {
-					return input?.role === 'admin' || input?.role === 'editor';
-				},
-				delete: (input?: { role: 'admin' | 'editor' | 'viewer' }) => {
-					return input?.role === 'admin';
-				},
+const bouncer = createBouncerService();
+
+const postPolicy = definePolicy({
+		handlers: {
+			create: (input?: { role: 'admin' | 'editor' | 'viewer' }) => {
+				return input?.role === 'admin' || input?.role === 'editor'
+					? { ok: true }
+					: { ok: false, message: 'Post creation is not allowed' };
 			},
-		}),
-	},
+			delete: (input?: { role: 'admin' | 'editor' | 'viewer' }) => {
+				return input?.role === 'admin'
+					? { ok: true }
+					: { ok: false, message: 'Only admins can delete posts' };
+			},
+		},
+		onException: (message) => {
+			throw new Error(message ?? 'Unauthorized');
+		},
 });
 
-const canCreate = bouncer.check({
-	policy: 'post',
-	action: 'create',
-	data: { role: 'editor' },
-});
+const canCreate = bouncer.check(postPolicy, 'create', { role: 'editor' });
 
-bouncer.authorize({
-	policy: 'post',
-	action: 'delete',
-	data: { role: 'viewer' },
-	onException: () => {
-		throw new Error('Not allowed');
-	},
-});
+bouncer.authorize(postPolicy, 'delete', { role: 'viewer' });
 
 // compile-time payload safety per action
 // @ts-expect-error wrong payload shape for post.delete
-bouncer.check({ policy: 'post', action: 'delete', data: { userId: '1' } });
+bouncer.check(postPolicy, 'delete', { userId: '1' });
 ```
 
 ## API
 
-### `createBouncerService(config)`
+### `createBouncerService(config?)`
 
 Creates a bouncer service with strongly typed policy and action access.
 
-- `config.policies`: policy map keyed by policy name where each value is `definePolicy({ handlers })`
 - `config.onException`: optional fallback handler for unauthorized actions
 
 Returned methods:
 
-- `check(input)` returns `true` or `false`
-- `authorize(input)` throws when unauthorized (or calls an exception handler)
+- `check(policy, action, data?)` returns `true` or `false`
+- `authorize(policy, action, data?, options?)` throws when unauthorized (or calls an exception handler)
 
-### `definePolicy({ handlers })`
+### `definePolicy({ handlers, onException? })`
 
 Creates a policy declaration with typed action handlers.
 
-- `handlers`: policy action functions
+- `handlers`: policy action functions returning `{ ok: true }` or `{ ok: false; message?: string }`
+- `onException`: optional policy-level handler used when `authorize(...)` fails
 
 ## Notes
 
-- Policies must be declared via `definePolicy({ handlers })`.
-- If `authorize` fails and no exception handler exists, an error is thrown.
-- Unknown policy names and action names throw explicit errors.
+- Policies must be declared via `definePolicy({ handlers, onException? })`.
+- `authorize(...)` resolves exception handlers in this order: call options, policy config, service config.
+- `authorize(...)` passes the policy result message to `onException`, or `Unauthorized` when none is provided.
+- If `authorize` fails and no exception handler exists, an error is thrown with that message.
+- Unknown action names throw explicit errors.
 - Policy action input types are inferred from your policy definitions.
