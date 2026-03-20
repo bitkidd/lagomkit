@@ -1,6 +1,6 @@
 {
 	"name": "@lagomkit/mailer",
-	"version": "1.0.0",
+	"version": "1.1.0",
 	"type": "module",
 	"keywords": [
 		"mailer",
@@ -64,7 +64,7 @@
 		}
 	},
 	"dependencies": {
-		"nodemailer": "^8.0.1"
+		"nodemailer": "^8.0.3"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.4.4",
