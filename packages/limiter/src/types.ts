@@ -1,74 +1,113 @@
+import type { RateLimiterRes } from 'rate-limiter-flexible';
+
+export interface LimiterDriverConfig {
+	limit?: number;
+	period?: number;
+	keyPrefix?: string;
+	blockDuration?: number;
+	execEvenly?: boolean;
+	execEvenlyMinDelayMs?: number;
+	onException?: (data: RateLimiterRes) => void;
+}
+
+export interface LimiterTopicConfig {
+	key: string;
+	limit?: number;
+	period?: number;
+}
+
+export interface LimiterTopic {
+	key: string;
+	limit: number;
+	period: number;
+}
+
+export interface LimiterTopicRequest {
+	topic: string;
+	identifier: string;
+}
+
+export interface LimiterAuthorizeRequest extends LimiterTopicRequest {
+	onException?: (data: RateLimiterRes) => void;
+}
+
+export type LimiterResult =
+	| { ok: true; data: RateLimiterRes }
+	| { ok: false; data: RateLimiterRes };
+
+export class TopicExistsError extends Error {
+	constructor(topic: string) {
+		super(`Topic already exists: ${topic}`);
+		this.name = 'TopicExistsError';
+	}
+}
+
+export class TopicNotFoundError extends Error {
+	constructor(topic: string) {
+		super(`Topic not found: ${topic}`);
+		this.name = 'TopicNotFoundError';
+	}
+}
+
+export class LimiterExceededError extends Error {
+	readonly data: RateLimiterRes;
+
+	constructor(data: RateLimiterRes) {
+		super('Too many requests');
+		this.name = 'LimiterExceededError';
+		this.data = data;
+	}
+}
+
 /**
- * Contract implemented by limiter drivers.
+ *  Limiter driver implementation
  */
-export interface LimiterDriverContract {
+export interface LimiterDriver {
 	/**
-	 * Returns whether a fallback exception handler is configured.
+	 * Creates an explicit topic with optional per-topic overrides.
 	 */
-	hasExceptionHandler: () => boolean;
+	createTopic: (input: LimiterTopicConfig) => Promise<LimiterTopic>;
+
 	/**
-	 * Sets a fallback exception handler used by `authorize`.
+	 * Returns topic metadata, or null if it does not exist.
 	 */
-	setExceptionHandler: (newExceptionHandler: () => void) => void;
+	getTopic: (
+		input: Pick<LimiterTopicConfig, 'key'>,
+	) => Promise<LimiterTopic | null>;
+
 	/**
-	 * Removes stale usage timestamps.
-	 *
-	 * @returns Number of removed timestamps.
+	 * Checks whether a topic exists.
 	 */
-	cleanup: (params?: { topic?: string }) => Promise<number>;
+	hasTopic: (input: Pick<LimiterTopicConfig, 'key'>) => Promise<boolean>;
+
 	/**
-	 * Optional teardown hook for driver resources.
+	 * Evaluates whether an identifier can consume a token for a topic.
 	 */
-	destroy?: () => void;
+	check: (input: LimiterTopicRequest) => Promise<LimiterResult>;
+
 	/**
-	 * Creates a limiter topic if it does not already exist.
+	 * Consumes a token and returns limiter data without throwing on exhaustion.
 	 */
-	createTopic: (params: {
-		key: string;
-		limit?: number;
-		period?: number;
-	}) => Promise<void>;
-	/**
-	 * Returns topic configuration and usage state.
-	 */
-	getTopic: (params: { key: string }) => Promise<{
-		limit: number;
-		period: number;
-		usage: Map<string, number[]>;
-	} | null>;
-	/**
-	 * Returns whether a topic exists.
-	 */
-	hasTopic: (params: { key: string }) => Promise<boolean>;
-	/**
-	 * Evaluates whether an identifier is currently limited for a topic.
-	 */
-	check: (params: { topic: string; identifier: string }) => Promise<{
-		limited: boolean;
-		remaining: number;
-		resetAt: number;
-		retryAfter: number;
-	}>;
+	consume: (input: LimiterTopicRequest) => Promise<LimiterResult>;
+
 	/**
 	 * Enforces a limit check and throws or runs a handler when limited.
 	 */
-	authorize: (params: {
-		topic: string;
-		identifier: string;
-		onException?: () => void;
-	}) => Promise<void>;
+	authorize: (input: LimiterAuthorizeRequest) => Promise<void>;
 }
 
 /**
  * Typed limiter service API.
  */
-export interface LimiterServiceContract<
-	KnownLimiters extends Record<string, LimiterDriverContract>,
+export interface LimiterService<
+	KnownLimiters extends Record<string, LimiterDriver>,
+	DefaultKey extends keyof KnownLimiters,
 > {
 	/**
 	 * Returns the configured default limiter driver.
 	 */
-	default: () => LimiterDriverContract;
+	default: () => KnownLimiters[DefaultKey];
+
 	/**
 	 * Returns a limiter driver by key.
 	 */

@@ -18,14 +18,16 @@ const limiter = createLimiterService({
 });
 
 await limiter.default().createTopic({ key: 'login', limit: 3, period: 60 });
+await limiter.default().createTopic({ key: 'search' });
 
-const result = await limiter.default().check({
+const result = await limiter.default().consume({
 	topic: 'login',
 	identifier: 'user:42',
 });
 
-if (result.limited) {
-	// deny request
+if (!result.ok) {
+	// deny request and inspect retry metadata
+	console.log(result.data.msBeforeNext);
 }
 ```
 
@@ -52,21 +54,27 @@ Config options:
 - `limit` default limit per topic (default: `100`)
 - `period` default period in seconds (default: `60`)
 - `onException` fallback unauthorized handler for `authorize`
-- `cleanupInterval` background cleanup interval in seconds (default: `30`)
+- `keyPrefix` optional storage prefix for internal limiter keys
+- `blockDuration`, `execEvenly`, and `execEvenlyMinDelayMs` are forwarded to `rate-limiter-flexible`
 
 Driver methods:
 
-- `createTopic({ key, limit?, period? })` creates a topic if it does not exist
-- `getTopic({ key })` returns topic config and usage map, or `null` when missing
+- `createTopic({ key, limit?, period? })` creates a topic and throws if it already exists
+- `getTopic({ key })` returns topic config, or `null` when missing
 - `hasTopic({ key })` returns whether a topic exists
-- `check({ topic, identifier })` returns `{ limited, remaining, resetAt, retryAfter }`
-- `authorize({ topic, identifier, onException? })` throws or calls exception handler when limited
-- `setExceptionHandler(handler)` sets fallback exception handler
-- `hasExceptionHandler()` returns whether fallback handler is configured
-- `cleanup({ topic? })` prunes stale usage entries and returns number of removed timestamps
-- `destroy()` clears internal cleanup timer (call on shutdown in long-running apps)
+- `check({ topic, identifier })` reads current limiter state without consuming a token
+- `consume({ topic, identifier })` consumes a token and returns `{ ok, data }` without throwing on limit exhaustion
+- `authorize({ topic, identifier, onException? })` consumes a token and throws or calls exception handler when limited
+
+`data` is a `RateLimiterRes` from `rate-limiter-flexible`, so it includes values such as:
+
+- `remainingPoints`
+- `consumedPoints`
+- `msBeforeNext`
+- `isFirstInDuration`
 
 ## Notes
 
 - In-memory state is process-local and resets when the process restarts.
 - Use memory driver for single-process apps, tests, and local development.
+- Topics must be explicitly created before use; unknown topics throw.

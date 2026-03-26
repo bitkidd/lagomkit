@@ -1,33 +1,49 @@
 import { describe, expect, test } from 'vitest';
+
 import {
 	createLimiterService,
 	createMemoryLimiterDriver,
 } from '../src/exports.js';
 
-const service = createLimiterService({
-	default: 'memory',
-	drivers: {
-		memory: createMemoryLimiterDriver(),
-	},
-});
-
 describe('Limiter::Service', () => {
 	test('should return expected methods', () => {
+		const service = createLimiterService({
+			default: 'memory',
+			drivers: {
+				memory: createMemoryLimiterDriver(),
+			},
+		});
+
 		expect(service).toHaveProperty('default');
 		expect(service).toHaveProperty('use');
+		expect(typeof service.default).toBe('function');
 		expect(typeof service.use).toBe('function');
 	});
 
-	test('should return driver on policy call', async () => {
-		const driver = service.use('memory');
+	test('should return a typed driver from default and use', () => {
+		const memory = createMemoryLimiterDriver();
+		const service = createLimiterService({
+			default: 'memory',
+			drivers: {
+				memory,
+			},
+		});
 
-		expect(driver).toHaveProperty('check');
-		expect(driver).toHaveProperty('authorize');
-		expect(driver).toHaveProperty('createTopic');
+		expect(service.default()).toBe(memory);
+		expect(service.use('memory')).toBe(memory);
+		expect(service.default()).toHaveProperty('createTopic');
+		expect(service.default()).toHaveProperty('consume');
 	});
 
-	test('should throw on unknown driver', async () => {
-		//@ts-expect-error driver uknown
+	test('should throw on unknown driver', () => {
+		const service = createLimiterService({
+			default: 'memory',
+			drivers: {
+				memory: createMemoryLimiterDriver(),
+			},
+		});
+
+		// @ts-expect-error testing runtime safety for unknown driver access
 		expect(() => service.use('unknown')).toThrowError(
 			'Limiter driver "unknown" is not defined',
 		);
