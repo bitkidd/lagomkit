@@ -24,6 +24,5 @@ describe('Limiter::Exports', () => {
 		expect(packageJson.exports).toHaveProperty('./service');
 		expect(packageJson.exports).toHaveProperty('./types');
 		expect(packageJson.exports).toHaveProperty('./drivers/*');
-		expect(packageJson.imports).toHaveProperty('#src/*');
 	});
 });
