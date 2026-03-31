@@ -3,13 +3,13 @@ import type {
 	LimiterDriverConfig,
 	LimiterTopic,
 	LimiterTopicConfig,
-} from '#src/types.js';
+} from '../types.js';
 
 import {
 	LimiterExceededError,
 	TopicExistsError,
 	TopicNotFoundError,
-} from '#src/helpers.js';
+} from '../helpers.js';
 import { RateLimiterMemory, RateLimiterRes } from 'rate-limiter-flexible';
 
 const DEFAULT_LIMIT = 100;

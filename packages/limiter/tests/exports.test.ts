@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, test } from 'vitest';
 
-import * as limiter from '#src/exports.js';
+import * as limiter from '../src/exports.js';
 
 const packageJsonPath = fileURLToPath(
 	new URL('../package.json', import.meta.url),

@@ -5,7 +5,7 @@ import {
 	TopicExistsError,
 	TopicNotFoundError,
 } from '../src/helpers.js';
-import { createMemoryLimiterDriver } from '#src/exports.js';
+import { createMemoryLimiterDriver } from '../src/exports.js';
 
 describe('MemoryLimiterDriver', () => {
 	it('should create the expected public methods', () => {
