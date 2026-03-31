@@ -9,7 +9,7 @@ import {
 	LimiterExceededError,
 	TopicExistsError,
 	TopicNotFoundError,
-} from '#src/types.js';
+} from '#src/helpers.js';
 import { RateLimiterMemory, RateLimiterRes } from 'rate-limiter-flexible';
 
 const DEFAULT_LIMIT = 100;
