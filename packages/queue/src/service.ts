@@ -7,7 +7,7 @@ import type {
 } from 'pg-boss';
 import { PgBoss } from 'pg-boss';
 import type {
-	CreatePgBossServiceConfig,
+	createQueueServiceConfig,
 	PgBossClientContract,
 	PgBossSendArgs,
 	PgBossServiceContract,
@@ -32,7 +32,7 @@ type PgBossTaskContext<
  * Builds a pg-boss client from either an injected instance or constructor config.
  */
 function buildBossClient<Tasks extends PgBossTaskMap>(
-	config: CreatePgBossServiceConfig<Tasks>,
+	config: createQueueServiceConfig<Tasks>,
 ): PgBossClientContract {
 	if ('boss' in config) {
 		return config.boss;
@@ -81,8 +81,8 @@ export function defineTask<Data extends PgBossTaskPayload>(config: {
 /**
  * Creates a typed pg-boss service from declared tasks.
  */
-export function createPgBossService<Tasks extends PgBossTaskMap>(
-	config: CreatePgBossServiceConfig<Tasks>,
+export function createQueueService<Tasks extends PgBossTaskMap>(
+	config: createQueueServiceConfig<Tasks>,
 ): PgBossServiceContract<Tasks> {
 	const boss = buildBossClient(config);
 	const workerIds = new Map<string, string>();
@@ -327,14 +327,14 @@ export function createPgBossService<Tasks extends PgBossTaskMap>(
 	return {
 		start,
 		stop,
-		client: () => {
-			return boss;
-		},
 		send,
 		sendAfter,
 		sendThrottled,
 		sendDebounced,
 		fetch,
 		work,
+		client: () => {
+			return boss;
+		},
 	};
 }

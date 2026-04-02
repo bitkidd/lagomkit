@@ -1,6 +1,6 @@
 {
-	"name": "@lagomkit/pgboss",
-	"version": "1.1.0",
+	"name": "@lagomkit/queue",
+	"version": "1.0.0",
 	"type": "module",
 	"keywords": [
 		"pg-boss",
@@ -11,7 +11,7 @@
 	],
 	"author": "Chirill Ceban <cc@bitkidd.dev>",
 	"license": "MIT",
-	"description": "Type-safe pg-boss service with declared tasks, inferred payloads, and auto-registered workers.",
+	"description": "Type-safe queue service based on pg-boss with declared tasks, inferred payloads, and auto-registered workers.",
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/bitkidd/lagomkit.git"

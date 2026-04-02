@@ -1,7 +1,7 @@
 import { describe, expect, test, vi } from 'vitest';
 
 import {
-	createPgBossService,
+	createQueueService,
 	defineTask,
 	type PgBossClientContract,
 } from '#src/exports.js';
@@ -71,7 +71,7 @@ describe('PgBoss::Service', () => {
 
 	test('should return expected methods', () => {
 		const boss = createBossMock();
-		const service = createPgBossService({ boss, tasks });
+		const service = createQueueService({ boss, tasks });
 
 		expect(service).toHaveProperty('start');
 		expect(service).toHaveProperty('stop');
@@ -86,7 +86,7 @@ describe('PgBoss::Service', () => {
 
 	test('should send a typed task using task queue name', async () => {
 		const boss = createBossMock();
-		const service = createPgBossService({ boss, tasks });
+		const service = createQueueService({ boss, tasks });
 
 		await service.send({
 			task: 'email.sendWelcome',
@@ -105,7 +105,7 @@ describe('PgBoss::Service', () => {
 
 	test('should send null payload when data is omitted', async () => {
 		const boss = createBossMock();
-		const service = createPgBossService({ boss, tasks });
+		const service = createQueueService({ boss, tasks });
 
 		await service.send({ task: 'housekeeping.cleanup' });
 
@@ -118,7 +118,7 @@ describe('PgBoss::Service', () => {
 
 	test('should call deferred and throttled send methods', async () => {
 		const boss = createBossMock();
-		const service = createPgBossService({ boss, tasks });
+		const service = createQueueService({ boss, tasks });
 
 		await service.sendAfter({
 			task: 'billing.syncInvoice',
@@ -163,7 +163,7 @@ describe('PgBoss::Service', () => {
 
 	test('should register declared worker from task definition', async () => {
 		const boss = createBossMock();
-		const service = createPgBossService({ boss, tasks, autoWork: false });
+		const service = createQueueService({ boss, tasks, autoWork: false });
 
 		const workerId = await service.work('email.sendWelcome');
 
@@ -178,7 +178,7 @@ describe('PgBoss::Service', () => {
 
 	test('should not register same task worker twice', async () => {
 		const boss = createBossMock();
-		const service = createPgBossService({ boss, tasks, autoWork: false });
+		const service = createQueueService({ boss, tasks, autoWork: false });
 
 		const workerId1 = await service.work('billing.syncInvoice');
 		const workerId2 = await service.work('billing.syncInvoice');
@@ -190,7 +190,7 @@ describe('PgBoss::Service', () => {
 
 	test('should collapse concurrent worker registration for the same task', async () => {
 		const boss = createBossMock();
-		const service = createPgBossService({ boss, tasks, autoWork: false });
+		const service = createQueueService({ boss, tasks, autoWork: false });
 
 		const [workerId1, workerId2] = await Promise.all([
 			service.work('billing.syncInvoice'),
@@ -205,7 +205,7 @@ describe('PgBoss::Service', () => {
 
 	test('should auto-register declared workers on start by default', async () => {
 		const boss = createBossMock();
-		const service = createPgBossService({ boss, tasks });
+		const service = createQueueService({ boss, tasks });
 
 		await service.start();
 
@@ -216,7 +216,7 @@ describe('PgBoss::Service', () => {
 
 	test('should create queue only once for repeated worker registration', async () => {
 		const boss = createBossMock();
-		const service = createPgBossService({ boss, tasks, autoWork: false });
+		const service = createQueueService({ boss, tasks, autoWork: false });
 
 		await service.work('billing.syncInvoice');
 		await service.work('billing.syncInvoice');
@@ -227,7 +227,7 @@ describe('PgBoss::Service', () => {
 
 	test('should skip auto worker registration when autoWork is false', async () => {
 		const boss = createBossMock();
-		const service = createPgBossService({ boss, tasks, autoWork: false });
+		const service = createQueueService({ boss, tasks, autoWork: false });
 
 		await service.start();
 
@@ -237,7 +237,7 @@ describe('PgBoss::Service', () => {
 
 	test('should throw on undefined task name at runtime', async () => {
 		const boss = createBossMock();
-		const service = createPgBossService({ boss, tasks });
+		const service = createQueueService({ boss, tasks });
 
 		await expect(
 			// @ts-expect-error checking unknown task
@@ -247,14 +247,14 @@ describe('PgBoss::Service', () => {
 
 	test('should expose original boss client', () => {
 		const boss = createBossMock();
-		const service = createPgBossService({ boss, tasks });
+		const service = createQueueService({ boss, tasks });
 
 		expect(service.client()).toBe(boss);
 	});
 
 	test('should start and stop the underlying boss client', async () => {
 		const boss = createBossMock();
-		const service = createPgBossService({ boss, tasks });
+		const service = createQueueService({ boss, tasks });
 
 		await service.start();
 		await service.stop({ graceful: true });
@@ -268,7 +268,7 @@ describe('PgBoss::Service', () => {
 		boss.stop = vi.fn(async () => {
 			throw new Error('stop failed');
 		});
-		const service = createPgBossService({ boss, tasks, autoWork: false });
+		const service = createQueueService({ boss, tasks, autoWork: false });
 
 		await service.work('billing.syncInvoice');
 
@@ -281,7 +281,7 @@ describe('PgBoss::Service', () => {
 
 	test('should provide type-safe task payloads', async () => {
 		const boss = createBossMock();
-		const service = createPgBossService({ boss, tasks });
+		const service = createQueueService({ boss, tasks });
 
 		await service.send({
 			task: 'billing.syncInvoice',
@@ -296,7 +296,7 @@ describe('PgBoss::Service', () => {
 	});
 
 	test('should create internal pg-boss client from connection string', () => {
-		const service = createPgBossService({
+		const service = createQueueService({
 			connectionString: 'postgres://postgres:postgres@localhost:5432/postgres',
 			tasks,
 		});

@@ -2,7 +2,7 @@ import { PGlite } from '@electric-sql/pglite';
 import { PgBoss } from 'pg-boss';
 import { afterEach, describe, expect, test } from 'vitest';
 
-import { createPgBossService, defineTask } from '#src/exports.js';
+import { createQueueService, defineTask } from '#src/exports.js';
 
 type SqlResult = {
 	rows: any[];
@@ -70,7 +70,7 @@ describe.sequential('PgBoss::Integration', () => {
 		const handled = createDeferred<{ userId: string }>();
 		const taskQueueName = 'auth_password_reset_email';
 
-		const service = createPgBossService({
+		const service = createQueueService({
 			autoWork: true,
 			boss: harness.boss,
 			tasks: {
@@ -81,7 +81,6 @@ describe.sequential('PgBoss::Integration', () => {
 						} else {
 							handled.reject('No job');
 						}
-
 					},
 					name: taskQueueName,
 					options: { pollingIntervalSeconds: 0.5 },

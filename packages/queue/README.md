@@ -1,8 +1,8 @@
-# @lagomkit/pgboss
+# @lagomkit/queue
 
-Type-safe `pg-boss` service for declaring tasks once and getting fully typed `send(...)`, `fetch(...)`, and `work(...)` flows.
+Type-safe queue service based on `pg-boss` for declaring tasks once and getting fully typed `send(...)`, `fetch(...)`, and `work(...)` flows.
 
-`@lagomkit/pgboss` wraps `pg-boss` with a task-declaration API where each task owns its payload type and worker handler. Start the service and workers can register automatically.
+`@lagomkit/queue` wraps `pg-boss` with a task-declaration API where each task owns its payload type and worker handler. Start the service and workers can register automatically.
 
 ## Why
 
@@ -15,9 +15,9 @@ Type-safe `pg-boss` service for declaring tasks once and getting fully typed `se
 ## Quick start
 
 ```ts
-import { createPgBossService, defineTask } from '@lagomkit/pgboss';
+import { createQueueService, defineTask } from '@lagomkit/queue';
 
-const bossService = createPgBossService({
+const queueService = createQueueService({
 	connectionString: process.env.DATABASE_URL!,
 	tasks: {
 		'email.sendWelcome': defineTask<{
@@ -38,17 +38,17 @@ const bossService = createPgBossService({
 	},
 });
 
-await bossService.start();
+await queueService.start();
 
-await bossService.send({
+await queueService.send({
 	task: 'email.sendWelcome',
 	data: { userId: 'usr_1', locale: 'en' },
 });
 
 // Optional when autoWork is enabled (default)
-await bossService.work('email.sendWelcome');
+await queueService.work('email.sendWelcome');
 
-await bossService.stop();
+await queueService.stop();
 ```
 
 ## API
@@ -58,10 +58,10 @@ await bossService.stop();
 Creates a task declaration used for payload inference and worker registration.
 
 - `name`: optional queue name override (falls back to task map key)
-- `options`: optional pg-boss `WorkOptions`
+- `options`: optional `WorkOptions`
 - `handler`: required worker handler
 
-### `createPgBossService(config)`
+### `createQueueService(config)`
 
 Creates a typed pg-boss service.
 

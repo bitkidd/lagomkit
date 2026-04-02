@@ -180,9 +180,9 @@ export interface PgBossClientContract {
 }
 
 /**
- * Configuration supported by createPgBossService.
+ * Configuration supported by createQueueService.
  */
-export type CreatePgBossServiceConfig<Tasks extends PgBossTaskMap> =
+export type createQueueServiceConfig<Tasks extends PgBossTaskMap> =
 	| {
 			/**
 			 * Declared tasks handled by the service.
