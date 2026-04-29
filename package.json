@@ -1,12 +1,15 @@
 {
-  "name": "lagomkit",
-  "license": "ISC",
-  "packageManager": "pnpm@10.26.2",
-  "devDependencies": {
-    "@biomejs/biome": "2.4.4",
-    "@changesets/cli": "^2.31.0",
-    "@tsconfig/node24": "^24.0.4",
-    "@types/node": "^24.12.2",
-    "vitest": "^4.1.5"
-  }
+	"name": "lagomkit",
+	"license": "ISC",
+	"packageManager": "pnpm@10.26.2",
+	"scripts": {
+		"release": "pnpm -r build && pnpm -r test && pnpm changeset publish"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "2.4.4",
+		"@changesets/cli": "^2.31.0",
+		"@tsconfig/node24": "^24.0.4",
+		"@types/node": "^24.12.2",
+		"vitest": "^4.1.5"
+	}
 }
