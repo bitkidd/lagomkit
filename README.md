@@ -73,6 +73,26 @@ Run a command for one package:
 pnpm --filter @lagomkit/encoder test
 ```
 
+## Releasing
+
+This repository uses Changesets and a GitHub Actions release workflow.
+
+### Release flow
+
+1. Add your code changes.
+2. Create a changeset: `pnpm changeset`.
+3. Commit code + `.changeset/*.md` and merge to `main`.
+4. GitHub Actions opens or updates a `chore: version packages` PR.
+5. Merge that PR to publish updated packages to npm.
+
+### Useful commands
+
+```bash
+pnpm changeset
+pnpm changeset version
+pnpm changeset publish
+```
+
 ## License
 
 MIT - see [`LICENSE`](./LICENSE).
