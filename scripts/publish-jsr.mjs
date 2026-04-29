@@ -32,5 +32,5 @@ for (const packageName of packageNames) {
 
 	console.log(`Publishing ${pkg.name} from ${packageDir}`);
 
-	runInherit('npx jsr publish', packageDir);
+	runInherit('pnpx jsr publish', packageDir);
 }
