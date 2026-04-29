@@ -12,21 +12,21 @@ import { createBouncerService, definePolicy } from '@lagomkit/bouncer';
 const bouncer = createBouncerService();
 
 const postPolicy = definePolicy({
-		handlers: {
-			create: (input?: { role: 'admin' | 'editor' | 'viewer' }) => {
-				return input?.role === 'admin' || input?.role === 'editor'
-					? { ok: true }
-					: { ok: false, message: 'Post creation is not allowed' };
-			},
-			delete: (input?: { role: 'admin' | 'editor' | 'viewer' }) => {
-				return input?.role === 'admin'
-					? { ok: true }
-					: { ok: false, message: 'Only admins can delete posts' };
-			},
-		},
-		onException: (message) => {
-			throw new Error(message ?? 'Unauthorized');
-		},
+  handlers: {
+    create: (input?: { role: 'admin' | 'editor' | 'viewer' }) => {
+      return input?.role === 'admin' || input?.role === 'editor'
+        ? { ok: true }
+        : { ok: false, message: 'Post creation is not allowed' };
+    },
+    delete: (input?: { role: 'admin' | 'editor' | 'viewer' }) => {
+      return input?.role === 'admin'
+        ? { ok: true }
+        : { ok: false, message: 'Only admins can delete posts' };
+    },
+  },
+  onException: (message) => {
+    throw new Error(message ?? 'Unauthorized');
+  },
 });
 
 const canCreate = bouncer.check(postPolicy, 'create', { role: 'editor' });
