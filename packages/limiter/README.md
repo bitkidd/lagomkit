@@ -8,9 +8,9 @@ Small, typed rate-limiting toolkit with composable drivers and a lightweight ser
 import { createLimiterService, createMemoryLimiterDriver } from '@lagomkit/limiter';
 
 const limiter = createLimiterService({
-	default: 'memory',
-	drivers: {
-		memory: createMemoryLimiterDriver({
+  default: 'memory',
+  drivers: {
+    memory: createMemoryLimiterDriver({
 			limit: 5,
 			period: 60,
 		}),
