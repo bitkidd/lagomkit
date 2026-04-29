@@ -18,7 +18,7 @@ Type-safe queue service based on `pg-boss` for declaring tasks once and getting 
 import { createQueueService, defineTask } from '@lagomkit/queue';
 
 const queueService = createQueueService({
-	connectionString: process.env.DATABASE_URL!,
+  connectionString: process.env.DATABASE_URL!,
 	tasks: {
 		'email.sendWelcome': defineTask<{
 			userId: string;

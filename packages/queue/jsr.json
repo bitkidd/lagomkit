@@ -1,0 +1,10 @@
+{
+	"$schema": "https://jsr.io/schema/config-file.v1.json",
+	"name": "@lagomkit/queue",
+	"version": "1.0.0",
+	"license": "MIT",
+	"exports": "./src/exports.ts",
+	"publish": {
+		"exclude": ["dist/**", "node_modules/**", "tests/**"]
+	}
+}
