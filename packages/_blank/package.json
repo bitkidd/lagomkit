@@ -1,6 +1,7 @@
 {
 	"name": "@lagomkit/_blank",
 	"version": "1.0.0",
+	"private": true,
 	"type": "module",
 	"keywords": [],
 	"author": "Chirill Ceban <cc@bitkidd.dev>",
@@ -16,9 +17,6 @@
 	"directories": {
 		"test": "tests"
 	},
-	"publishConfig": {
-		"access": "public"
-	},
 	"scripts": {
 		"prepare": "npm run build",
 		"prepublishOnly": "npm run test",
@@ -26,7 +24,7 @@
 		"check": "pnpx @biomejs/biome check --write",
 		"format": "pnpx @biomejs/biome format --write",
 		"lint": "pnpx @biomejs/biome lint --write",
-		"test": "vitest run --sequence.concurrent",
+		"test": "vitest run --sequence.concurrent --passWithNoTests",
 		"coverage": "vitest run --coverage"
 	},
 	"files": [

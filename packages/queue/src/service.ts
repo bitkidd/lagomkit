@@ -1,5 +1,4 @@
 import type {
-	ConstructorOptions,
 	FetchOptions,
 	Job,
 	JobWithMetadata,
@@ -40,7 +39,7 @@ function buildBossClient<Tasks extends PgBossTaskMap>(
 
 	if ('connectionString' in config) {
 		if (config.options) {
-			const options: ConstructorOptions = {
+			const options = {
 				...config.options,
 				connectionString: config.connectionString,
 			};
