@@ -77,13 +77,19 @@ pnpm --filter @lagomkit/encoder test
 
 This repository uses Changesets and a GitHub Actions release workflow.
 
+### Setup once
+
+- Configure npm Trusted Publishing (OIDC) for this repository/workflow on each package in npm.
+- Ensure each publishable package has `"publishConfig": { "access": "public" }`.
+
 ### Release flow
 
 1. Add your code changes.
 2. Create a changeset: `pnpm changeset`.
-3. Commit code + `.changeset/*.md` and merge to `main`.
-4. GitHub Actions opens or updates a `chore: version packages` PR.
-5. Merge that PR to publish updated packages to npm.
+3. Open a PR and get `CI` green.
+4. Merge to `main`.
+5. `Release` runs automatically after successful `CI` on `main` and opens/updates a `chore: version packages` PR.
+6. Merge the version PR to publish updated packages to npm.
 
 ### Useful commands
 
