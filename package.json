@@ -3,9 +3,8 @@
 	"license": "ISC",
 	"packageManager": "pnpm@10.26.2",
 	"scripts": {
-		"sync:jsr": "node scripts/sync-jsr-versions.mjs",
 		"versions": "pnpm changeset version",
-		"publish": "pnpm changeset publish && pnpm run sync:jsr"
+		"publish": "pnpm changeset publish"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.4.4",
