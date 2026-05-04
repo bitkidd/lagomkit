@@ -68,11 +68,13 @@ function normalizeTaskPayload<Data extends PgBossTaskPayload>(
 export function defineTask<Data extends PgBossTaskPayload>(config: {
 	name?: string;
 	options?: PgBossTask<Data>['options'];
+	schedule?: PgBossTask<Data>['schedule'];
 	handler: PgBossTask<Data>['handler'];
 }): PgBossTask<Data> {
 	return {
 		...(config.name !== undefined ? { name: config.name } : {}),
 		...(config.options !== undefined ? { options: config.options } : {}),
+		...(config.schedule !== undefined ? { schedule: config.schedule } : {}),
 		handler: config.handler,
 	};
 }
@@ -87,6 +89,7 @@ export function createQueueService<Tasks extends PgBossTaskMap>(
 	const workerIds = new Map<string, string>();
 	const workerRegistrations = new Map<string, Promise<string>>();
 	const queueCreation = new Map<string, Promise<void>>();
+	const scheduleRegistration = new Map<string, Promise<void>>();
 
 	const assertTask = <TaskName extends PgBossTaskName<Tasks>>(
 		task: TaskName,
@@ -300,6 +303,44 @@ export function createQueueService<Tasks extends PgBossTaskMap>(
 		}
 	};
 
+	const ensureSchedule = async <TaskName extends PgBossTaskName<Tasks>>(
+		task: TaskName,
+	): Promise<void> => {
+		const existingRegistration = scheduleRegistration.get(task);
+
+		if (existingRegistration) {
+			await existingRegistration;
+			return;
+		}
+
+		const registration = (async (): Promise<void> => {
+			const { declaration, queue } = getTaskContext(task);
+			const { schedule } = declaration;
+
+			if (!schedule) {
+				return;
+			}
+
+			await ensureQueue(queue);
+
+			if (typeof schedule === 'string') {
+				await boss.schedule(queue, schedule);
+				return;
+			}
+
+			await boss.schedule(queue, schedule.cron, schedule.data, schedule.options);
+		})();
+
+		scheduleRegistration.set(task, registration);
+
+		try {
+			await registration;
+		} catch (error) {
+			scheduleRegistration.delete(task);
+			throw error;
+		}
+	};
+
 	const start = async (): Promise<void> => {
 		await boss.start();
 
@@ -310,6 +351,7 @@ export function createQueueService<Tasks extends PgBossTaskMap>(
 		const taskNames = Object.keys(config.tasks) as PgBossTaskName<Tasks>[];
 
 		for (const taskName of taskNames) {
+			await ensureSchedule(taskName);
 			await work(taskName);
 		}
 	};
@@ -320,6 +362,7 @@ export function createQueueService<Tasks extends PgBossTaskMap>(
 		} finally {
 			workerIds.clear();
 			workerRegistrations.clear();
+			scheduleRegistration.clear();
 		}
 	};
 

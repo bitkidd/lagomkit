@@ -3,6 +3,7 @@ import type {
 	FetchOptions,
 	Job,
 	JobWithMetadata,
+	ScheduleOptions,
 	SendOptions,
 	StopOptions,
 	WorkHandler,
@@ -26,6 +27,16 @@ export type PgBossTask<Data extends PgBossTaskPayload = PgBossTaskPayload> = {
 	 * Worker polling options passed through to `pg-boss.work(...)`.
 	 */
 	readonly options?: WorkOptions;
+	/**
+	 * Optional cron schedule to register with `pg-boss.schedule(...)`.
+	 */
+	readonly schedule?:
+		| string
+		| {
+				cron: string;
+				data?: Exclude<Data, undefined> | null;
+				options?: ScheduleOptions;
+		  };
 	/**
 	 * Worker implementation for this task.
 	 */
@@ -110,6 +121,15 @@ export interface PgBossClientContract {
 		data?: object | null,
 		options?: SendOptions,
 	) => Promise<string | null>;
+	/**
+	 * Registers a recurring job schedule.
+	 */
+	schedule: (
+		name: string,
+		cron: string,
+		data?: object | null,
+		options?: ScheduleOptions,
+	) => Promise<void>;
 	/**
 	 * Sends a job to start after a delay or point in time.
 	 */

@@ -31,6 +31,10 @@ const queueService = createQueueService({
 			},
 		}),
 		'billing.syncInvoice': defineTask<{ invoiceId: string; force?: boolean }>({
+			schedule: {
+				cron: '0 * * * *',
+				options: { key: 'billing-hourly' },
+			},
 			handler: async ([job]) => {
 				job.data.invoiceId;
 			},
@@ -53,12 +57,13 @@ await queueService.stop();
 
 ## API
 
-### `defineTask<Data>({ name?, options?, handler })`
+### `defineTask<Data>({ name?, options?, schedule?, handler })`
 
 Creates a task declaration used for payload inference and worker registration.
 
 - `name`: optional queue name override (falls back to task map key)
 - `options`: optional `WorkOptions`
+- `schedule`: optional cron schedule string or schedule config `{ cron, data?, options? }`
 - `handler`: required worker handler
 
 ### `createQueueService(config)`

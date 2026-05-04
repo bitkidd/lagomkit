@@ -22,6 +22,9 @@ function createBossMock(): PgBossClientContract {
 		send: vi.fn(async () => {
 			return 'job_1';
 		}),
+		schedule: vi.fn(async () => {
+			return undefined;
+		}),
 		sendAfter: vi.fn(async () => {
 			return 'job_2';
 		}),
@@ -62,6 +65,11 @@ describe('PgBoss::Service', () => {
 			handler: sendWelcomeWorker,
 		}),
 		'billing.syncInvoice': defineTask<{ invoiceId: string; force?: boolean }>({
+			schedule: {
+				cron: '0 * * * *',
+				data: { invoiceId: 'inv_recurring' },
+				options: { key: 'billing-hourly' },
+			},
 			handler: syncInvoiceWorker,
 		}),
 		'housekeeping.cleanup': defineTask<undefined>({
@@ -203,7 +211,7 @@ describe('PgBoss::Service', () => {
 		expect(boss.work).toHaveBeenCalledTimes(1);
 	});
 
-	test('should auto-register declared workers on start by default', async () => {
+		test('should auto-register declared workers on start by default', async () => {
 		const boss = createBossMock();
 		const service = createQueueService({ boss, tasks });
 
@@ -211,6 +219,13 @@ describe('PgBoss::Service', () => {
 
 		expect(boss.start).toHaveBeenCalledTimes(1);
 		expect(boss.createQueue).toHaveBeenCalledTimes(3);
+		expect(boss.schedule).toHaveBeenCalledTimes(1);
+		expect(boss.schedule).toHaveBeenCalledWith(
+			'billing.syncInvoice',
+			'0 * * * *',
+			{ invoiceId: 'inv_recurring' },
+			{ key: 'billing-hourly' },
+		);
 		expect(boss.work).toHaveBeenCalledTimes(3);
 	});
 
