@@ -1,67 +1,67 @@
 {
-	"name": "@lagomkit/bouncer",
-	"version": "2.0.0",
-	"type": "module",
-	"keywords": [
-		"bouncer",
-		"authorization",
-		"policy",
-		"typescript",
-		"lagomkit"
-	],
-	"author": "Chirill Ceban <cc@bitkidd.dev>",
-	"license": "MIT",
-	"description": "Typed authorization toolkit with policy-based checks and a lightweight service factory.",
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/bitkidd/lagomkit.git"
-	},
-	"main": "./dist/src/exports.js",
-	"types": "./dist/src/exports.d.ts",
-	"sideEffects": false,
-	"directories": {
-		"test": "tests"
-	},
-	"publishConfig": {
-		"access": "public"
-	},
-	"scripts": {
-		"prepare": "npm run build",
-		"prepublishOnly": "npm run test",
-		"build": "rm -rf dist/* && tsgo --project tsconfig.build.json",
-		"check": "pnpx @biomejs/biome check --write",
-		"format": "pnpx @biomejs/biome format --write",
-		"lint": "pnpx @biomejs/biome lint --write",
-		"test": "vitest run --sequence.concurrent",
-		"coverage": "vitest run --coverage"
-	},
-	"files": [
-		"/dist/"
-	],
-	"imports": {
-		"#src/*": "./src/*"
-	},
-	"exports": {
-		".": {
-			"types": "./dist/src/exports.d.ts",
-			"import": "./dist/src/exports.js",
-			"default": "./dist/src/exports.js"
-		},
-		"./service": {
-			"types": "./dist/src/service.d.ts",
-			"import": "./dist/src/service.js",
-			"default": "./dist/src/service.js"
-		},
-		"./types": {
-			"types": "./dist/src/types.d.ts",
-			"import": "./dist/src/types.js",
-			"default": "./dist/src/types.js"
-		}
-	},
-	"dependencies": {},
-	"devDependencies": {
-		"@biomejs/biome": "2.4.4",
-		"@tsconfig/node24": "^24.0.4",
-		"@typescript/native-preview": "7.0.0-dev.20260227.1"
-	}
+  "name": "@lagomkit/bouncer",
+  "version": "3.0.0",
+  "type": "module",
+  "keywords": [
+    "bouncer",
+    "authorization",
+    "policy",
+    "typescript",
+    "lagomkit"
+  ],
+  "author": "Chirill Ceban <cc@bitkidd.dev>",
+  "license": "MIT",
+  "description": "Typed authorization toolkit with policy-based checks and a lightweight service factory.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bitkidd/lagomkit.git"
+  },
+  "main": "./dist/src/exports.js",
+  "types": "./dist/src/exports.d.ts",
+  "sideEffects": false,
+  "directories": {
+    "test": "tests"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "prepare": "npm run build",
+    "prepublishOnly": "npm run test",
+    "build": "rm -rf dist/* && tsgo --project tsconfig.build.json",
+    "check": "pnpx @biomejs/biome check --write",
+    "format": "pnpx @biomejs/biome format --write",
+    "lint": "pnpx @biomejs/biome lint --write",
+    "test": "vitest run --sequence.concurrent",
+    "coverage": "vitest run --coverage"
+  },
+  "files": [
+    "/dist/"
+  ],
+  "imports": {
+    "#src/*": "./src/*"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/src/exports.d.ts",
+      "import": "./dist/src/exports.js",
+      "default": "./dist/src/exports.js"
+    },
+    "./service": {
+      "types": "./dist/src/service.d.ts",
+      "import": "./dist/src/service.js",
+      "default": "./dist/src/service.js"
+    },
+    "./types": {
+      "types": "./dist/src/types.d.ts",
+      "import": "./dist/src/types.js",
+      "default": "./dist/src/types.js"
+    }
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@biomejs/biome": "2.4.4",
+    "@tsconfig/node24": "^24.0.4",
+    "@typescript/native-preview": "7.0.0-dev.20260227.1"
+  }
 }
