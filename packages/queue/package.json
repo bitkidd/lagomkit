@@ -62,9 +62,9 @@
     "pg-boss": "^12.14.0"
   },
   "devDependencies": {
-    "@electric-sql/pglite": "^0.3.16",
     "@biomejs/biome": "2.4.4",
-    "@tsconfig/node24": "^24.0.4",
-    "@typescript/native-preview": "7.0.0-dev.20260227.1"
+    "@electric-sql/pglite": "^0.3.16",
+    "@tsconfig/node24": "^24.0.5",
+    "@typescript/native-preview": "7.0.0-dev.20260707.2"
   }
 }
