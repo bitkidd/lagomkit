@@ -1,0 +1,14 @@
+{
+	"$schema": "https://jsr.io/schema/config-file.v1.json",
+	"name": "@lagomkit/logger",
+	"version": "1.0.0",
+	"license": "MIT",
+	"exports": "./src/exports.ts",
+	"imports": {
+		"@axiomhq/js": "npm:@axiomhq/js@^2.0.0",
+		"consola": "npm:consola@^3.4.2"
+	},
+	"publish": {
+		"exclude": ["dist/**", "node_modules/**", "tests/**"]
+	}
+}

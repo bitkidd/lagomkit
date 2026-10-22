@@ -12,7 +12,7 @@ export function createBcryptDriver(config?: { cost?: number }): HasherDriver {
 
 	return {
 		async hash({ content }: { content: string }): Promise<string> {
-			return await hash(content.normalize('NFKC'), cost);
+			return await hash(content.normalize('NFKC'), { cost });
 		},
 		async verify({
 			content,

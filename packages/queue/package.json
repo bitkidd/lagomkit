@@ -29,9 +29,9 @@
     "prepare": "npm run build",
     "prepublishOnly": "npm run test",
     "build": "rm -rf dist/* && tsgo --project tsconfig.build.json",
-    "check": "pnpx @biomejs/biome check --write",
-    "format": "pnpx @biomejs/biome format --write",
-    "lint": "pnpx @biomejs/biome lint --write",
+    "check": "biome check --write",
+    "format": "biome format --write",
+    "lint": "biome lint --write",
     "test": "vitest run --sequence.concurrent",
     "coverage": "vitest run --coverage"
   },
@@ -59,12 +59,12 @@
     }
   },
   "dependencies": {
-    "pg-boss": "^12.14.0"
+    "pg-boss": "^12.38.0"
   },
   "devDependencies": {
-    "@electric-sql/pglite": "^0.3.16",
-    "@biomejs/biome": "2.4.4",
-    "@tsconfig/node24": "^24.0.4",
-    "@typescript/native-preview": "7.0.0-dev.20260227.1"
+    "@biomejs/biome": "2.6.2",
+    "@electric-sql/pglite": "^0.5.11",
+    "@tsconfig/node24": "^24.0.5",
+    "@typescript/native-preview": "7.0.0-dev.20260707.2"
   }
 }

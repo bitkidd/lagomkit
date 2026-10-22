@@ -30,7 +30,7 @@ async function createIntegrationHarness() {
 			): Promise<SqlResult> => {
 				if ((values?.length ?? 0) === 0) {
 					const results = await db.exec(text);
-					return { rows: results.at(-1)?.rows ?? [] };
+					return { rows: results.flatMap((result) => result.rows) };
 				}
 
 				const result = await db.query(text, values ?? []);
@@ -51,7 +51,7 @@ async function createIntegrationHarness() {
 	};
 }
 
-describe.sequential('PgBoss::Integration', () => {
+describe('PgBoss::Integration', { concurrent: false }, () => {
 	const cleanup: Array<() => Promise<void>> = [];
 
 	afterEach(async () => {
