@@ -70,7 +70,6 @@
 		}
 	},
 	"dependencies": {
-		"@rgrove/parse-xml": "^5.0.0",
 		"mrmime": "^2.0.1",
 		"s3mini": "^1.0.3"
 	},

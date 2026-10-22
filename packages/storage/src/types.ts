@@ -1,7 +1,5 @@
 import type { Readable } from 'node:stream';
 
-export type StorageVisibility = 'public' | 'private';
-
 /**
  * Portable object keys are relative, slash-separated file names.
  */
@@ -96,12 +94,6 @@ export interface StorageDriverContract {
 		},
 	) => Promise<void>;
 	listAll: (input?: StorageListOptions) => Promise<StorageList>;
-	/** S3 reports ACL anonymous-read grants, not effective bucket-policy access. */
-	getVisibility: (input: StorageKey) => Promise<StorageVisibility>;
-	/** S3 replaces the object ACL with private or public-read, including custom grants. */
-	setVisibility: (
-		input: StorageKey & { visibility: StorageVisibility },
-	) => Promise<void>;
 	/** URL construction does not check existence or grant public access. */
 	getUrl: (input: StorageKey) => Promise<string>;
 	getSignedUrl: (input: StorageSignedUrlOptions) => Promise<string>;

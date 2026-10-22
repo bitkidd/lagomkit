@@ -10,7 +10,6 @@ import type {
 	StorageListEntry,
 	StorageMetaData,
 } from '../types.js';
-import { createS3AclClient } from './s3-acl.js';
 import {
 	assertStorageKey,
 	createStorageDriver,
@@ -34,13 +33,7 @@ export type S3StorageClient = Pick<
 
 export type S3StorageDriverConfig = { baseUrl?: string } & (
 	| { options: S3Config }
-	| {
-			client: S3StorageClient;
-			/** Transport for ACL requests. Match the client's custom fetch, if any. */
-			fetch?: typeof globalThis.fetch;
-			/** Timeout for ACL requests, in milliseconds. */
-			requestAbortTimeout?: number;
-	  }
+	| { client: S3StorageClient }
 );
 
 /** Creates an S3-compatible storage driver using s3mini, without the AWS SDK. */
@@ -50,14 +43,6 @@ export function createS3StorageDriver(
 	const client =
 		'client' in config ? config.client : new S3mini(config.options);
 	const baseUrl = storageBaseUrl(config.baseUrl ?? client.endpoint.href);
-	const transport = 'options' in config ? config.options : config;
-	const acl = createS3AclClient({
-		client,
-		fetch: transport.fetch ?? globalThis.fetch,
-		...(transport.requestAbortTimeout !== undefined
-			? { requestAbortTimeout: transport.requestAbortTimeout }
-			: {}),
-	});
 
 	const operation = async <T>(
 		name: string,
@@ -70,18 +55,18 @@ export function createS3StorageDriver(
 			try {
 				return await run();
 			} catch (error) {
-				if (error instanceof S3ServiceError && error.status === 501) {
-					throw new StorageUnsupportedOperationError('s3', name, {
-						cause: error,
-					});
-				}
-
 				if (
 					error instanceof S3ServiceError &&
 					error.status === 404 &&
 					error.serviceCode !== 'NoSuchBucket'
 				) {
 					throw new StorageNotFoundError(key, { cause: error });
+				}
+
+				if (error instanceof S3ServiceError && error.status === 501) {
+					throw new StorageUnsupportedOperationError('s3', name, {
+						cause: error,
+					});
 				}
 
 				throw error;
@@ -330,16 +315,6 @@ export function createS3StorageDriver(
 						? { paginationToken: page.nextContinuationToken }
 						: {}),
 				};
-			});
-		},
-		getVisibility: async ({ key }) => {
-			return operation('getVisibility', key, async () => {
-				return acl.getVisibility(key);
-			});
-		},
-		setVisibility: async ({ key, visibility }) => {
-			await operation('setVisibility', key, async () => {
-				await acl.setVisibility(key, visibility);
 			});
 		},
 		getUrl: async ({ key }) => {

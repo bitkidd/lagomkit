@@ -109,19 +109,15 @@ describe('Storage::Local', { concurrent: false }, () => {
 		expect(await driver.get({ key: 'directory/file' })).toBe('kept');
 	});
 
-	test('reports configured visibility and rejects unsupported operations', async () => {
+	test('rejects unsupported operations', async () => {
 		const driver = createLocalStorageDriver({
 			root: harness.root,
-			visibility: 'public',
 		});
-		expect(await driver.getVisibility({ key: 'file' })).toBe('public');
-		expect(await harness.driver.getVisibility({ key: 'file' })).toBe('private');
 
 		for (const operation of [
 			driver.getUrl({ key: 'file' }),
 			driver.getSignedUrl({ key: 'file' }),
 			driver.getSignedUploadUrl({ key: 'file' }),
-			driver.setVisibility({ key: 'file', visibility: 'private' }),
 			driver.listAll({ maxResults: 1 }),
 			driver.listAll({ paginationToken: 'next' }),
 		]) {

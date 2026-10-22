@@ -37,8 +37,6 @@ describe.each(['local', 's3'] as const)(
 					'copyFromFs',
 					'moveFromFs',
 					'listAll',
-					'getVisibility',
-					'setVisibility',
 					'getUrl',
 					'getSignedUrl',
 					'getSignedUploadUrl',

@@ -21,7 +21,6 @@ export function createS3Harness() {
 	>();
 	const requests: Request[] = [];
 	const failures = new Map<string, { status: number; code: string }>();
-	const acls = new Map<string, string>();
 	const uploads = new Map<
 		string,
 		{
@@ -50,41 +49,10 @@ export function createS3Harness() {
 		requests.push(request);
 		const url = new URL(request.url);
 		const key = decodeURIComponent(url.pathname.replace(/^\/bucket\/?/, ''));
-		const failure =
-			failures.get(
-				`${request.method}:${key}${url.searchParams.has('acl') ? '?acl' : ''}`,
-			) ?? failures.get(`${request.method}:${key}`);
+		const failure = failures.get(`${request.method}:${key}`);
 
 		if (failure) {
 			return error(failure.status, failure.code);
-		}
-
-		if (url.searchParams.has('acl')) {
-			if (!files.has(key)) {
-				return error(404, 'NoSuchKey');
-			}
-
-			if (request.method === 'PUT') {
-				if (request.headers.get('content-md5') !== '1B2M2Y8AsgTpgAmY7PhCfg==') {
-					return error(400, 'InvalidDigest');
-				}
-
-				const publicRead = request.headers.get('x-amz-acl') === 'public-read';
-				acls.set(
-					key,
-					`<AccessControlPolicy xmlns="http://s3.amazonaws.com/doc/2006-03-01/"><Owner><ID>owner</ID></Owner><AccessControlList><Grant><Grantee xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="CanonicalUser"><ID>owner</ID></Grantee><Permission>FULL_CONTROL</Permission></Grant>${publicRead ? '<Grant><Grantee xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="Group"><URI>http://acs.amazonaws.com/groups/global/AllUsers</URI></Grantee><Permission>READ</Permission></Grant>' : ''}</AccessControlList></AccessControlPolicy>`,
-				);
-
-				return new Response(null);
-			}
-
-			return new Response(
-				acls.get(key) ??
-					'<AccessControlPolicy><Owner><ID>owner</ID></Owner><AccessControlList><Grant><Grantee><ID>owner</ID></Grantee><Permission>FULL_CONTROL</Permission></Grant></AccessControlList></AccessControlPolicy>',
-				{
-					headers: { 'Content-Type': 'application/xml' },
-				},
-			);
 		}
 
 		if (request.method === 'GET' && url.searchParams.has('list-type')) {
@@ -241,7 +209,7 @@ export function createS3Harness() {
 		},
 	});
 
-	return { driver, requests, files, failures, uploads, acls };
+	return { driver, requests, files, failures, uploads };
 }
 
 export async function createHarness(kind: 'local' | 's3') {

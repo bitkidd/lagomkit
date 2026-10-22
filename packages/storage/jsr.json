@@ -5,7 +5,6 @@
 	"license": "MIT",
 	"exports": "./src/exports.ts",
 	"imports": {
-		"@rgrove/parse-xml": "npm:@rgrove/parse-xml@^5.0.0",
 		"mrmime": "npm:mrmime@^2.0.1",
 		"s3mini": "npm:s3mini@^1.0.3"
 	},

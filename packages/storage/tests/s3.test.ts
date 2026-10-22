@@ -21,6 +21,35 @@ function createClient() {
 }
 
 describe('Storage::S3', () => {
+	test('writes, copies, moves, and signs uploads without ACL headers or ACL lookups', async () => {
+		const { driver, requests, failures } = createS3Harness();
+		await driver.put({ key: 'source', contents: 'original' });
+		await driver.putStream({
+			key: 'stream',
+			contents: Readable.from(['stream']),
+		});
+		failures.set('GET:source', { status: 403, code: 'AccessDenied' });
+		await driver.copy({ source: 'source', destination: 'copied' });
+		await driver.move({ source: 'source', destination: 'moved' });
+		expect(await driver.get({ key: 'copied' })).toBe('original');
+		expect(await driver.get({ key: 'moved' })).toBe('original');
+		expect(await driver.get({ key: 'stream' })).toBe('stream');
+		const upload = await driver.getSignedUploadUrl({ key: 'upload' });
+
+		expect(upload.headers).toEqual({});
+		expect(new URL(upload.url).searchParams.get('X-Amz-SignedHeaders')).toBe(
+			'host',
+		);
+		expect(
+			requests.every((request) => {
+				return (
+					!request.headers.has('x-amz-acl') &&
+					!new URL(request.url).searchParams.has('acl')
+				);
+			}),
+		).toBe(true);
+	});
+
 	test('signs downloads and uploads without making HTTP requests', async () => {
 		const { driver, requests } = createS3Harness();
 		const download = new URL(

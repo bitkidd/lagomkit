@@ -18,11 +18,7 @@ import {
 	StorageNotFoundError,
 	StorageUnsupportedOperationError,
 } from '../helpers.js';
-import type {
-	StorageDriverContract,
-	StorageListEntry,
-	StorageVisibility,
-} from '../types.js';
+import type { StorageDriverContract, StorageListEntry } from '../types.js';
 import {
 	assertStorageKey,
 	createStorageDriver,
@@ -40,8 +36,6 @@ export type LocalStorageDriverConfig = {
 	root: string;
 	/** Public HTTP mount point, served by your application or web server. */
 	baseUrl?: string;
-	/** Describes the HTTP mount; does not change filesystem permissions. */
-	visibility?: StorageVisibility;
 };
 
 /** Creates a local filesystem driver without installing an HTTP server. */
@@ -55,12 +49,6 @@ export function createLocalStorageDriver(
 	const root = resolve(config.root);
 	const baseUrl =
 		config.baseUrl !== undefined ? storageBaseUrl(config.baseUrl) : undefined;
-	const visibility = config.visibility ?? 'private';
-
-	if (visibility !== 'public' && visibility !== 'private') {
-		throw new TypeError('Local storage visibility must be public or private');
-	}
-
 	let rootPromise: Promise<string> | undefined;
 
 	const getRoot = (): Promise<string> => {
@@ -308,14 +296,6 @@ export function createLocalStorageDriver(
 
 				return { objects };
 			});
-		},
-		getVisibility: async ({ key }) => {
-			assertStorageKey(key);
-
-			return visibility;
-		},
-		setVisibility: async () => {
-			throw new StorageUnsupportedOperationError('local', 'setVisibility');
 		},
 		getUrl: async ({ key }) => {
 			assertStorageKey(key);

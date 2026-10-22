@@ -71,8 +71,6 @@ All methods return promises. Both drivers implement `StorageDriverContract`, inc
 | `copyFromFs`         | `{ source, destination, contentType? }`                  | Upload an absolute filesystem path or `file:` URL       |
 | `moveFromFs`         | `{ source, destination, contentType? }`                  | Upload, then remove the filesystem source               |
 | `listAll`            | `{ prefix?, recursive?, maxResults?, paginationToken? }` | `{ objects, paginationToken? }`                         |
-| `getVisibility`      | `{ key }`                                                | `'public'` or `'private'`                               |
-| `setVisibility`      | `{ key, visibility }`                                    | Change visibility when supported                        |
 | `getUrl`             | `{ key }`                                                | Unsigned URL                                            |
 | `getSignedUrl`       | `{ key, expiresIn?, contentType?, contentDisposition? }` | Signed download URL                                     |
 | `getSignedUploadUrl` | `{ key, expiresIn?, contentType? }`                      | `{ url, method: 'PUT', headers }`                       |
@@ -140,48 +138,29 @@ await fetch(upload.url, {
 
 ## Driver configuration and capabilities
 
-| Capability                                  | Local                       | S3                        |
-| ------------------------------------------- | --------------------------- | ------------------------- |
-| Reads, writes, streams, metadata, transfers | Supported                   | Supported                 |
-| Directory listings                          | Supported                   | Supported                 |
-| Paginated listings                          | Throws                      | Supported                 |
-| Unsigned URLs                               | Requires `baseUrl`          | Endpoint URL or `baseUrl` |
-| Signed downloads and uploads                | Throws                      | Supported                 |
-| Read visibility                             | Configured mount visibility | Object ACL grants         |
-| Change per-file visibility                  | Throws                      | When ACLs are enabled     |
+| Capability                                  | Local              | S3                        |
+| ------------------------------------------- | ------------------ | ------------------------- |
+| Reads, writes, streams, metadata, transfers | Supported          | Supported                 |
+| Directory listings                          | Supported          | Supported                 |
+| Paginated listings                          | Throws             | Supported                 |
+| Unsigned URLs                               | Requires `baseUrl` | Endpoint URL or `baseUrl` |
+| Signed downloads and uploads                | Throws             | Supported                 |
 
 ### Local
 
-`createLocalStorageDriver({ root, baseUrl?, visibility? })` creates the root lazily. Keep it application-owned. Existing symlinks below the root are rejected and excluded from listings. This is not an operating-system sandbox against another process replacing paths concurrently.
+`createLocalStorageDriver({ root, baseUrl? })` creates the root lazily. Keep it application-owned. Existing symlinks below the root are rejected and excluded from listings. This is not an operating-system sandbox against another process replacing paths concurrently.
 
-Writes use a temporary file and rename, so failed uploads leave existing contents intact. New files have mode `0600`; configure serving and permissions for your environment. The driver does not start an HTTP server. `baseUrl` identifies the HTTP location your application or web server serves, and `visibility` describes that mount (default `'private'`); it does not change permissions or expose files. `getUrl` only constructs a URL and grants no access.
+Writes use a temporary file and rename, so failed uploads leave existing contents intact. New files have mode `0600`; configure serving and permissions for your environment. The driver does not start an HTTP server. `baseUrl` identifies the HTTP location your application or web server serves. `getUrl` only constructs a URL and grants no access.
 
 Local metadata infers MIME types from extensions, falling back to `application/octet-stream`; it does not persist `contentType` supplied when writing. ETags are weak filesystem identifiers, not content hashes.
 
 ### S3
 
-`createS3StorageDriver({ options, baseUrl? })` accepts native `s3mini` client options, including endpoint, credentials, region, and custom `fetch`. Alternatively pass `{ client, baseUrl?, fetch?, requestAbortTimeout? }` with an existing `S3mini` instance or a compatible `S3StorageClient`. When supplying a client with a custom transport, also pass `fetch` for ACL requests; these use the client's public presigner because s3mini has no dedicated ACL methods. `requestAbortTimeout` controls ACL request timeouts in milliseconds. With `options`, ACL requests inherit its `fetch` and `requestAbortTimeout` automatically. `baseUrl` can point to a public CDN; it must be an HTTP(S) URL without credentials, query, or fragment.
+`createS3StorageDriver({ options, baseUrl? })` accepts native `s3mini` client options, including endpoint, credentials, region, custom `fetch`, and `requestAbortTimeout`. Alternatively pass `{ client, baseUrl? }` with an existing `S3mini` instance or a compatible `S3StorageClient`. `baseUrl` can point to a public CDN; it must be an HTTP(S) URL without credentials, query, or fragment.
 
 S3 stores the supplied `contentType`, defaulting to `application/octet-stream`. Metadata uses response headers from a GET request and immediately cancels the body, because s3mini does not expose a complete HEAD metadata API. SDK/service errors retain their original error as `cause` where available.
 
-### S3 visibility
-
-```ts
-await storage.use('s3').setVisibility({
-	key: 'avatars/user.png',
-	visibility: 'public',
-});
-
-const visibility = await storage.use('s3').getVisibility({
-	key: 'avatars/user.png',
-});
-```
-
-`setVisibility` uses [PutObjectAcl](https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutObjectAcl.html): `'public'` applies the `public-read` canned ACL, and `'private'` applies the `private` canned ACL. This replaces the object's entire ACL, including custom grants, without changing its contents or metadata. The credentials need `s3:PutObjectAcl` permission.
-
-`getVisibility` uses [GetObjectAcl](https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetObjectAcl.html) and requires `s3:GetObjectAcl` permission. It returns `'public'` when an `AllUsers` grant permits `READ` or `FULL_CONTROL`, and `'private'` otherwise. It reports ACL grants, not effective access: bucket policies, Block Public Access, and CDN configuration can change who can read the object.
-
-Buckets using Bucket owner enforced Object Ownership disable ACL changes. `setVisibility` then throws `StorageUnsupportedOperationError` for `AccessControlListNotSupported`. AWS still allows reading that bucket's object ACLs, which typically report `'private'`. Providers that reject ACL operations with an unsupported-operation error or HTTP 405/501 also produce `StorageUnsupportedOperationError`. Permission denials, other service failures, and malformed ACL responses throw `StorageOperationError`; missing objects throw `StorageNotFoundError`. Original service errors, including status and error code, are preserved as `cause`.
+Configure public access through bucket policies, your CDN, or your application. The driver sends no object ACL headers or ACL requests. Signed URLs provide temporary access to individual objects without changing stored permissions.
 
 ## Errors
 
