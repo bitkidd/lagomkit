@@ -68,8 +68,8 @@
 		}
 	},
 	"dependencies": {
-		"@node-rs/argon2": "^2.0.2",
-		"@node-rs/bcrypt": "^1.10.7"
+		"@node-rs/argon2": "^2.2.2",
+		"@node-rs/bcrypt": "^2.0.0"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.6.2",
