@@ -44,7 +44,7 @@ function createBossMock(): PgBossClientContract {
 	};
 }
 
-describe('PgBoss::Service', () => {
+describe('PgBoss::Service', { concurrent: false }, () => {
 	const sendWelcomeWorker = vi.fn(async () => {
 		return undefined;
 	});
@@ -211,7 +211,7 @@ describe('PgBoss::Service', () => {
 		expect(boss.work).toHaveBeenCalledTimes(1);
 	});
 
-		test('should auto-register declared workers on start by default', async () => {
+	test('should auto-register declared workers on start by default', async () => {
 		const boss = createBossMock();
 		const service = createQueueService({ boss, tasks });
 

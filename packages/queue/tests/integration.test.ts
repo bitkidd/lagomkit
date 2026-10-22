@@ -51,7 +51,7 @@ async function createIntegrationHarness() {
 	};
 }
 
-describe.sequential('PgBoss::Integration', () => {
+describe('PgBoss::Integration', { concurrent: false }, () => {
 	const cleanup: Array<() => Promise<void>> = [];
 
 	afterEach(async () => {
