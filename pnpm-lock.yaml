@@ -82,8 +82,8 @@ importers:
   packages/limiter:
     dependencies:
       rate-limiter-flexible:
-        specifier: ^10.0.1
-        version: 10.0.1
+        specifier: ^11.2.3
+        version: 11.2.3
     devDependencies:
       '@biomejs/biome':
         specifier: 2.6.2
@@ -1009,8 +1009,8 @@ packages:
     resolution: {integrity: sha512-9ZhXKM/rw350N1ovuWHbGxnGh/SNJ4cnxHiM0rxE4VN41wsg8P8zWn9hv/buK00RP4WvlOyr/RBDiptyxVbkZQ==}
     engines: {node: '>=0.10.0'}
 
-  rate-limiter-flexible@10.0.1:
-    resolution: {integrity: sha512-3G6GMFz5Oz5nVnDv9gQ1LLMdExR4B1lOjogPIjehtgyxPMIkY09BGyk2eCYt36/OkV/0t12GEt6J6HpTl6RzZg==}
+  rate-limiter-flexible@11.2.3:
+    resolution: {integrity: sha512-w4HX4toAsEbu1VksOauZwI9d6URb6/4WqJJ5Hg1bESihMt2KJfQ2iTwvDkhIg+y2HetLh65DGu/8xIkUz/xNPA==}
 
   rollup@4.65.0:
     resolution: {integrity: sha512-QVCvQUTGDN6JRwi3jVGCY3H4aTHvi9rX0LyoBMkGUvdh/Z6O51CzcLz85BWZaTCDGhl6ySGqYZs+xI1jmPqGcw==}
@@ -1841,7 +1841,7 @@ snapshots:
     dependencies:
       xtend: 4.0.2
 
-  rate-limiter-flexible@10.0.1: {}
+  rate-limiter-flexible@11.2.3: {}
 
   rollup@4.65.0:
     dependencies:
