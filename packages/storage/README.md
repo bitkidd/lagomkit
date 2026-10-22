@@ -162,6 +162,29 @@ S3 stores the supplied `contentType`, defaulting to `application/octet-stream`. 
 
 Configure public access through bucket policies, your CDN, or your application. The driver sends no object ACL headers or ACL requests. Signed URLs provide temporary access to individual objects without changing stored permissions.
 
+## Testing against an S3 provider
+
+The regular `test` command runs without credentials and skips live integration tests. To run against a real provider, create `packages/storage/.env` with:
+
+```dotenv
+S3_ENDPOINT=https://your-s3-endpoint.example/your-test-bucket
+S3_ACCESS_KEY_ID=your-access-key
+S3_SECRET_ACCESS_KEY=your-secret-key
+S3_REGION=us-east-1
+```
+
+Include the bucket in the endpoint for path-style services. Existing environment variables override values in `.env`; `S3_REGION` defaults to `us-east-1`. The `.env` file is ignored by Git.
+
+Run from the repository root:
+
+```bash
+pnpm --filter @lagomkit/storage test:integration
+```
+
+The suite writes synthetic objects under a fresh `lagomkit-integration/<uuid>/` prefix and removes that prefix afterward, including when a test fails. It verifies cleanup with a final listing. It never lists or deletes the bucket root. If cleanup fails because the provider is unavailable, the error includes the test prefix for manual cleanup.
+
+Tests cover text and binary data, encoded keys, overwrites, empty files, a 9 MiB multipart stream with checksum verification, failed-stream aborts, metadata, copies and moves, filesystem imports, paginated listings, prefix-scoped deletion, and actual signed uploads and downloads. Credentials need object read/write/delete, prefix listing, and multipart upload/abort permissions. Credentials and signed URLs are redacted from reported errors. Live tests are opt-in through `LAGOMKIT_STORAGE_INTEGRATION=1`, which the integration command sets automatically.
+
 ## Errors
 
 All storage errors extend `StorageError`:

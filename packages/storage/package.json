@@ -34,6 +34,7 @@
 		"format": "biome format --write",
 		"lint": "biome lint --write",
 		"test": "vitest run --sequence.concurrent",
+		"test:integration": "LAGOMKIT_STORAGE_INTEGRATION=1 vitest run tests/s3.integration.test.ts --no-file-parallelism",
 		"coverage": "vitest run --coverage"
 	},
 	"files": [
