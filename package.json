@@ -3,7 +3,7 @@
 	"license": "ISC",
 	"packageManager": "pnpm@12.15.0",
 	"scripts": {
-		"versions": "pnpm changeset version",
+		"versions": "pnpm changeset version && node scripts/sync-jsr-versions.mjs",
 		"publish": "pnpm changeset publish"
 	},
 	"devDependencies": {
