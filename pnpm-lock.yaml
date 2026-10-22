@@ -22,7 +22,7 @@ importers:
         version: 24.19.2
       vitest:
         specifier: ^5.0.5
-        version: 5.0.5(@types/node@24.19.2)(vite@7.3.1(@types/node@24.19.2)(yaml@2.9.1))
+        version: 5.0.5(@opentelemetry/api@1.10.0)(@types/node@24.19.2)(vite@7.3.1(@types/node@24.19.2)(yaml@2.9.1))
 
   packages/_blank:
     devDependencies:
@@ -117,15 +117,15 @@ importers:
   packages/queue:
     dependencies:
       pg-boss:
-        specifier: ^12.14.0
-        version: 12.18.1
+        specifier: ^12.38.0
+        version: 12.38.0(@opentelemetry/api@1.10.0)
     devDependencies:
       '@biomejs/biome':
         specifier: 2.6.2
         version: 2.6.2
       '@electric-sql/pglite':
-        specifier: ^0.3.16
-        version: 0.3.16
+        specifier: ^0.5.11
+        version: 0.5.11
       '@tsconfig/node24':
         specifier: ^24.0.5
         version: 24.0.5
@@ -281,8 +281,8 @@ packages:
     resolution: {integrity: sha512-dlT1m5e/0yUL0kRNcQn7yGLVThkgbB0Ga/1AmfDDC/8ik6AIiSf2QLQO2zPYvefsHP0aFgxO93cVLCCfDp7kzQ==}
     engines: {node: '>= 20.12.0'}
 
-  '@electric-sql/pglite@0.3.16':
-    resolution: {integrity: sha512-mZkZfOd9OqTMHsK+1cje8OSzfAQcpD7JmILXTl5ahdempjUDdmg4euf1biDex5/LfQIDJ3gvCu6qDgdnDxfJmA==}
+  '@electric-sql/pglite@0.5.11':
+    resolution: {integrity: sha512-SWuqsTjA4DDWqgZ05PC1RJaq8e00p5KACxbqaikDFQ8dIGA0SLRzuPniky7IW+q/c5RDNMdEXwv7mFBWIx9Hxw==}
 
   '@esbuild/aix-ppc64@0.27.7':
     resolution: {integrity: sha512-EKX3Qwmhz1eMdEJokhALr0YiD0lhQNwDqkPYyPhiSwKrh7/4KRjQc04sZ8db+5DVVnZ1LmbNDI1uAMPEUBnQPg==}
@@ -632,6 +632,10 @@ packages:
     resolution: {integrity: sha512-perB+8PsvBsJeUJ0pE2GgOFAZZ3IXSfKhQ3Pkr+y/L5yZm6W727659g+ZtHmlhIi9obs3y2euUMjVqRB/DVlvA==}
     engines: {node: '>= 10'}
 
+  '@opentelemetry/api@1.10.0':
+    resolution: {integrity: sha512-lMkyes8iHrG+mk6WH7X70MdCLI2RS0FwNBY1PyQ8UemaijE2m5mv5A0Niy3HtbYTFrgkUEQjFMXmSAk2hQDuPQ==}
+    engines: {node: '>=8.0.0'}
+
   '@pnpm/deps.graph-sequencer@1100.0.1':
     resolution: {integrity: sha512-pOr5+q1fLYKwFN3LAJuGZEnfXDcQ73zqgDHMtGy+K+uIoUqyY+6MeDCWFwfu+4EFuq76I5EPFofoNAI+Bmmq4A==}
     engines: {node: '>=22.13'}
@@ -849,8 +853,8 @@ packages:
     resolution: {integrity: sha512-XWAtwJ6OHO+tj0EKCs0Y2UamnyOxseZWltU4x2U2wh8g4AigdjwvtUjvLP2tqkA/avxHEtzxNaqGq/YGNwckKg==}
     engines: {node: '>=18'}
 
-  cron-parser@5.5.0:
-    resolution: {integrity: sha512-oML4lKUXxizYswqmxuOCpgFS8BNUJpIu6k/2HVHyaL8Ynnf3wdf9tkns0yRdJLSIjkJ+b0DXHMZEHGpMwjnPww==}
+  cron-parser@5.10.2:
+    resolution: {integrity: sha512-JfAYMY0LZaWQTuict8PhtF/ksSnq8xefSDmQUnnoqvkPYkU/y3UP0DTWzJKFBz0P1IXsDG8q0vY3zHkoFZOhvw==}
     engines: {node: '>=18'}
 
   es-module-lexer@2.3.2:
@@ -934,35 +938,37 @@ packages:
   package-manager-detector@1.9.0:
     resolution: {integrity: sha512-zAMfbta9nPA8AKkA4WdmNAT8R8s6Dk0/xwPsqNnRidMFcLo1YkLuPDTgs2f64XdzS8vbLNnoJ+uUIkgbz7oRHA==}
 
-  pg-boss@12.18.1:
-    resolution: {integrity: sha512-eh7rRSTxUbPguKNDChWunKd//t4CuPFLqg9mL93sq9fai4YiGMe2HrSDqGF8gQ1Kn7VMxnB5IGRkPGDoMm4yrg==}
+  pg-boss@12.38.0:
+    resolution: {integrity: sha512-felA3fyPSJwWk5cb/VwAgnudCAzWEdgBjjf+eukXm8pExlwkhjdBbOMukMyG5s8uZHO6fZZZcaIaTa3oKpfSCg==}
     engines: {node: '>=22.12.0'}
     hasBin: true
+    peerDependencies:
+      '@opentelemetry/api': ^1.9.0
 
-  pg-cloudflare@1.3.0:
-    resolution: {integrity: sha512-6lswVVSztmHiRtD6I8hw4qP/nDm1EJbKMRhf3HCYaqud7frGysPv7FYJ5noZQdhQtN2xJnimfMtvQq21pdbzyQ==}
+  pg-cloudflare@1.4.1:
+    resolution: {integrity: sha512-6PQbsFWZcp9EmJEwy5cGQ2La+AMWpP46lgbb8X+U/XsHIUweYDNCpeuKck5RxL2MdVFi7krbbEi5nX4Zh7JhrQ==}
 
-  pg-connection-string@2.12.0:
-    resolution: {integrity: sha512-U7qg+bpswf3Cs5xLzRqbXbQl85ng0mfSV/J0nnA31MCLgvEaAo7CIhmeyrmJpOr7o+zm0rXK+hNnT5l9RHkCkQ==}
+  pg-connection-string@2.14.1:
+    resolution: {integrity: sha512-qR3kGNPBLpCNtz0evbKA0Y/MRFXwSSdT+pTJvYp/bXTcReZbvX1kzF0IyTc1QnxqF7AZbOeBhNL8R5mYQZV/MA==}
 
   pg-int8@1.0.1:
     resolution: {integrity: sha512-WCtabS6t3c8SkpDBUlb1kjOs7l66xsGdKpIPZsg4wR+B3+u9UAum2odSsF9tnvxg80h4ZxLWMy4pRjOsFIqQpw==}
     engines: {node: '>=4.0.0'}
 
-  pg-pool@3.13.0:
-    resolution: {integrity: sha512-gB+R+Xud1gLFuRD/QgOIgGOBE2KCQPaPwkzBBGC9oG69pHTkhQeIuejVIk3/cnDyX39av2AxomQiyPT13WKHQA==}
+  pg-pool@3.14.0:
+    resolution: {integrity: sha512-gKtPkFdQPU3DksooVLi9LsjZxrsBUZIpa+7aVx+LV5pNh0KzP4Zleud2po+ConrxbuXGBJ6Hfer6hdgpIBpBaw==}
     peerDependencies:
       pg: '>=8.0'
 
-  pg-protocol@1.13.0:
-    resolution: {integrity: sha512-zzdvXfS6v89r6v7OcFCHfHlyG/wvry1ALxZo4LqgUoy7W9xhBDMaqOuMiF3qEV45VqsN6rdlcehHrfDtlCPc8w==}
+  pg-protocol@1.16.1:
+    resolution: {integrity: sha512-p9VOFMiHB/ZbJATetbg+99PxssTVSQRnyuPSQ67mN1+1KBOjZaZ83ZQzltnxPhJwSsC3nwVjJ10DVJlerbFzLg==}
 
   pg-types@2.2.0:
     resolution: {integrity: sha512-qTAAlrEsl8s4OiEQY69wDvcMIdQN6wdz5ojQiOy6YRMuynxenON0O5oCpJI6lshc6scgAY8qvJ2On/p+CXY0GA==}
     engines: {node: '>=4'}
 
-  pg@8.20.0:
-    resolution: {integrity: sha512-ldhMxz2r8fl/6QkXnBD3CR9/xg694oT6DZQ2s6c/RI28OjtSOpxnPrUCGOBJ46RCUxcWdx3p6kw/xnDHjKvaRA==}
+  pg@8.23.1:
+    resolution: {integrity: sha512-aL96AHANtWjPLDOLqnhx+ngp9+UK7ETEU8VJrDCGvsSSi/mGLcWYsS6Herg7lmaBJe4uwrfqsa7gTEFaSizDoQ==}
     engines: {node: '>= 16.0.0'}
     peerDependencies:
       pg-native: '>=3.0.1'
@@ -1008,13 +1014,16 @@ packages:
     engines: {node: '>=18.0.0', npm: '>=8.0.0'}
     hasBin: true
 
+  rrule-temporal@2.2.8:
+    resolution: {integrity: sha512-+wWUe0J02oMh1UWKIt1RTu2H0Cz+gP11O/iweK0MN2UP6JLGeepTUkbSBa90Hxq0W+ywSxM9IlJNouIUdMOwhg==}
+
   semver@7.8.5:
     resolution: {integrity: sha512-Y7/KDsb8LjooZpwaqGyulO6DQlksgCncchHGk+sZIY4SBvUocMBEFH5Ur1fI4dV+Jvl0w6cjvucaIi40puRioA==}
     engines: {node: '>=10'}
     hasBin: true
 
-  serialize-error@13.0.1:
-    resolution: {integrity: sha512-bBZaRwLH9PN5HbLCjPId4dP5bNGEtumcErgOX952IsvOhVPrm3/AeK1y0UHA/QaPG701eg0yEnOKsCOC6X/kaA==}
+  serialize-error@13.0.2:
+    resolution: {integrity: sha512-G+YKwp9I6IvWMe5RlwqxdmTPIcq/G8HK/sU51gdV1XAJznYkRSTB0ph+zB9AfSxG0fx6xrqYA6i9HeIcHFTXow==}
     engines: {node: '>=20'}
 
   shell-quote@1.12.0:
@@ -1039,6 +1048,9 @@ packages:
     resolution: {integrity: sha512-yEFYrVhod+hdNyx7g5Bnkkb0G6si8HJurOoOEgC8B/O0uXLHlaey/65KRv6cuWBNhBgHKAROVpc7QyYqE5gFng==}
     engines: {node: '>=20'}
 
+  temporal-spec@1.0.1:
+    resolution: {integrity: sha512-wxVoanmDeavXie1vu2JaQ3WIc3JZnWAOYFBsJyATaVsXsycKYUflGsyBmrRSnoCpZJpwPyr38VpgSUlQ8CbFxg==}
+
   tinybench@6.2.2:
     resolution: {integrity: sha512-nIZ2N2dFpjBsg2hgitKu7mA+FvsIJuGJOwysRngmVRRmWgR/UyPjwJj8c/fT/dhm8EkHnF5EOogRf+0Z2qrimA==}
     engines: {node: '>=20.0.0'}
@@ -1051,8 +1063,8 @@ packages:
     resolution: {integrity: sha512-wXR/dYpcqKmfWpEdZjiKJOwCNFndD0DMnrW/cYjVGttEkBfVgcLFHoNrlj47mjOVic9yyNu65alsgF4NQyTa2g==}
     engines: {node: '>=12.0.0'}
 
-  type-fest@5.6.0:
-    resolution: {integrity: sha512-8ZiHFm91orbSAe2PSAiSVBVko18pbhbiB3U9GglSzF/zCGkR+rxpHx6sEMCUm4kxY4LjDIUGgCfUMtwfZfjfUA==}
+  type-fest@5.10.0:
+    resolution: {integrity: sha512-NoSdpq/WEiAg5sjmBkmV/hfxv6HJH4NqPNrqjtSO5CwRmpsDfaf4begxW34KdJykH/l1yHtwBWQkCRdoXO8mPA==}
     engines: {node: '>=20'}
 
   undici-types@7.24.6:
@@ -1314,7 +1326,7 @@ snapshots:
       fast-wrap-ansi: 0.2.2
       sisteransi: 1.0.5
 
-  '@electric-sql/pglite@0.3.16': {}
+  '@electric-sql/pglite@0.5.11': {}
 
   '@esbuild/aix-ppc64@0.27.7':
     optional: true
@@ -1531,6 +1543,8 @@ snapshots:
       '@node-rs/bcrypt-win32-ia32-msvc': 2.0.0
       '@node-rs/bcrypt-win32-x64-msvc': 2.0.0
 
+  '@opentelemetry/api@1.10.0': {}
+
   '@pnpm/deps.graph-sequencer@1100.0.1': {}
 
   '@rollup/rollup-android-arm-eabi@4.65.0':
@@ -1671,7 +1685,7 @@ snapshots:
 
   chai@6.3.0: {}
 
-  cron-parser@5.5.0:
+  cron-parser@5.10.2:
     dependencies:
       luxon: 3.7.2
 
@@ -1758,26 +1772,28 @@ snapshots:
 
   package-manager-detector@1.9.0: {}
 
-  pg-boss@12.18.1:
+  pg-boss@12.38.0(@opentelemetry/api@1.10.0):
     dependencies:
-      cron-parser: 5.5.0
-      pg: 8.20.0
-      serialize-error: 13.0.1
+      '@opentelemetry/api': 1.10.0
+      cron-parser: 5.10.2
+      pg: 8.23.1
+      rrule-temporal: 2.2.8
+      serialize-error: 13.0.2
     transitivePeerDependencies:
       - pg-native
 
-  pg-cloudflare@1.3.0:
+  pg-cloudflare@1.4.1:
     optional: true
 
-  pg-connection-string@2.12.0: {}
+  pg-connection-string@2.14.1: {}
 
   pg-int8@1.0.1: {}
 
-  pg-pool@3.13.0(pg@8.20.0):
+  pg-pool@3.14.0(pg@8.23.1):
     dependencies:
-      pg: 8.20.0
+      pg: 8.23.1
 
-  pg-protocol@1.13.0: {}
+  pg-protocol@1.16.1: {}
 
   pg-types@2.2.0:
     dependencies:
@@ -1787,15 +1803,15 @@ snapshots:
       postgres-date: 1.0.7
       postgres-interval: 1.2.0
 
-  pg@8.20.0:
+  pg@8.23.1:
     dependencies:
-      pg-connection-string: 2.12.0
-      pg-pool: 3.13.0(pg@8.20.0)
-      pg-protocol: 1.13.0
+      pg-connection-string: 2.14.1
+      pg-pool: 3.14.0(pg@8.23.1)
+      pg-protocol: 1.16.1
       pg-types: 2.2.0
       pgpass: 1.0.5
     optionalDependencies:
-      pg-cloudflare: 1.3.0
+      pg-cloudflare: 1.4.1
 
   pgpass@1.0.5:
     dependencies:
@@ -1855,12 +1871,16 @@ snapshots:
       '@rollup/rollup-win32-x64-msvc': 4.65.0
       fsevents: 2.3.3
 
+  rrule-temporal@2.2.8:
+    dependencies:
+      temporal-spec: 1.0.1
+
   semver@7.8.5: {}
 
-  serialize-error@13.0.1:
+  serialize-error@13.0.2:
     dependencies:
       non-error: 0.1.0
-      type-fest: 5.6.0
+      type-fest: 5.10.0
 
   shell-quote@1.12.0: {}
 
@@ -1874,6 +1894,8 @@ snapshots:
 
   tagged-tag@1.0.0: {}
 
+  temporal-spec@1.0.1: {}
+
   tinybench@6.2.2: {}
 
   tinyexec@1.3.1: {}
@@ -1883,7 +1905,7 @@ snapshots:
       fdir: 6.5.0(picomatch@4.0.7)
       picomatch: 4.0.7
 
-  type-fest@5.6.0:
+  type-fest@5.10.0:
     dependencies:
       tagged-tag: 1.0.0
 
@@ -1902,7 +1924,7 @@ snapshots:
       fsevents: 2.3.3
       yaml: 2.9.1
 
-  vitest@5.0.5(@types/node@24.19.2)(vite@7.3.1(@types/node@24.19.2)(yaml@2.9.1)):
+  vitest@5.0.5(@opentelemetry/api@1.10.0)(@types/node@24.19.2)(vite@7.3.1(@types/node@24.19.2)(yaml@2.9.1)):
     dependencies:
       '@types/chai': 5.2.3
       '@vitest/mocker': 5.0.5(vite@7.3.1(@types/node@24.19.2)(yaml@2.9.1))
@@ -1919,6 +1941,7 @@ snapshots:
       vite: 7.3.1(@types/node@24.19.2)(yaml@2.9.1)
       why-is-node-running: 3.2.1
     optionalDependencies:
+      '@opentelemetry/api': 1.10.0
       '@types/node': 24.19.2
     transitivePeerDependencies:
       - msw
