@@ -60,7 +60,7 @@ Then follow the package-specific docs in `packages/*/README.md` for usage detail
 ### Requirements
 
 - Node.js 24+
-- pnpm 10+
+- pnpm 12+
 
 ### Setup
 

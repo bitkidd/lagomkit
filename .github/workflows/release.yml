@@ -31,7 +31,7 @@ jobs:
           ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -52,4 +52,4 @@ jobs:
           commit-message: "chore: version packages"
           pr-title: "chore: version packages"
         env:
-          NPM_CONFIG_PROVENANCE: true
+          PNPM_CONFIG_PROVENANCE: true

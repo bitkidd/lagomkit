@@ -1,7 +1,7 @@
 {
 	"name": "lagomkit",
 	"license": "ISC",
-	"packageManager": "pnpm@10.26.2",
+	"packageManager": "pnpm@12.15.0",
 	"scripts": {
 		"versions": "pnpm changeset version",
 		"publish": "pnpm changeset publish"
