@@ -5,8 +5,12 @@ export class StorageUnsupportedOperationError extends StorageError {
 	constructor(
 		readonly driver: string,
 		readonly operation: string,
+		options?: ErrorOptions,
 	) {
-		super(`Storage driver "${driver}" does not support "${operation}"`);
+		super(
+			`Storage driver "${driver}" does not support "${operation}"`,
+			options,
+		);
 		this.name = 'StorageUnsupportedOperationError';
 	}
 }

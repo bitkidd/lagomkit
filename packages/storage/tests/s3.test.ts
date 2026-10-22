@@ -253,11 +253,5 @@ describe('Storage::S3', () => {
 		expect(await driver.getUrl({ key: 'dir/a b.txt' })).toBe(
 			'https://storage.example.test/bucket/dir/a%20b.txt',
 		);
-		await expect(driver.getVisibility({ key: 'file' })).rejects.toBeInstanceOf(
-			StorageUnsupportedOperationError,
-		);
-		await expect(
-			driver.setVisibility({ key: 'file', visibility: 'public' }),
-		).rejects.toBeInstanceOf(StorageUnsupportedOperationError);
 	});
 });

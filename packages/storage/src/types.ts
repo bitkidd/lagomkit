@@ -96,7 +96,9 @@ export interface StorageDriverContract {
 		},
 	) => Promise<void>;
 	listAll: (input?: StorageListOptions) => Promise<StorageList>;
+	/** S3 reports ACL anonymous-read grants, not effective bucket-policy access. */
 	getVisibility: (input: StorageKey) => Promise<StorageVisibility>;
+	/** S3 replaces the object ACL with private or public-read, including custom grants. */
 	setVisibility: (
 		input: StorageKey & { visibility: StorageVisibility },
 	) => Promise<void>;

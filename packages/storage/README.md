@@ -147,8 +147,8 @@ await fetch(upload.url, {
 | Paginated listings                          | Throws                      | Supported                 |
 | Unsigned URLs                               | Requires `baseUrl`          | Endpoint URL or `baseUrl` |
 | Signed downloads and uploads                | Throws                      | Supported                 |
-| Read visibility                             | Configured mount visibility | Throws                    |
-| Change per-file visibility                  | Throws                      | Throws                    |
+| Read visibility                             | Configured mount visibility | Object ACL grants         |
+| Change per-file visibility                  | Throws                      | When ACLs are enabled     |
 
 ### Local
 
@@ -160,9 +160,28 @@ Local metadata infers MIME types from extensions, falling back to `application/o
 
 ### S3
 
-`createS3StorageDriver({ options, baseUrl? })` accepts native `s3mini` client options, including endpoint, credentials, region, and custom `fetch`. Alternatively pass `{ client, baseUrl? }` with an existing `S3mini` instance or a compatible `S3StorageClient`. `baseUrl` can point to a public CDN; it must be an HTTP(S) URL without credentials, query, or fragment.
+`createS3StorageDriver({ options, baseUrl? })` accepts native `s3mini` client options, including endpoint, credentials, region, and custom `fetch`. Alternatively pass `{ client, baseUrl?, fetch?, requestAbortTimeout? }` with an existing `S3mini` instance or a compatible `S3StorageClient`. When supplying a client with a custom transport, also pass `fetch` for ACL requests; these use the client's public presigner because s3mini has no dedicated ACL methods. `requestAbortTimeout` controls ACL request timeouts in milliseconds. With `options`, ACL requests inherit its `fetch` and `requestAbortTimeout` automatically. `baseUrl` can point to a public CDN; it must be an HTTP(S) URL without credentials, query, or fragment.
 
-S3 stores the supplied `contentType`, defaulting to `application/octet-stream`. Metadata uses response headers from a GET request and immediately cancels the body, because s3mini does not expose a complete HEAD metadata API. Visibility management is unsupported; configure access through bucket policies or your provider. SDK/service errors retain their original error as `cause` where available.
+S3 stores the supplied `contentType`, defaulting to `application/octet-stream`. Metadata uses response headers from a GET request and immediately cancels the body, because s3mini does not expose a complete HEAD metadata API. SDK/service errors retain their original error as `cause` where available.
+
+### S3 visibility
+
+```ts
+await storage.use('s3').setVisibility({
+	key: 'avatars/user.png',
+	visibility: 'public',
+});
+
+const visibility = await storage.use('s3').getVisibility({
+	key: 'avatars/user.png',
+});
+```
+
+`setVisibility` uses [PutObjectAcl](https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutObjectAcl.html): `'public'` applies the `public-read` canned ACL, and `'private'` applies the `private` canned ACL. This replaces the object's entire ACL, including custom grants, without changing its contents or metadata. The credentials need `s3:PutObjectAcl` permission.
+
+`getVisibility` uses [GetObjectAcl](https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetObjectAcl.html) and requires `s3:GetObjectAcl` permission. It returns `'public'` when an `AllUsers` grant permits `READ` or `FULL_CONTROL`, and `'private'` otherwise. It reports ACL grants, not effective access: bucket policies, Block Public Access, and CDN configuration can change who can read the object.
+
+Buckets using Bucket owner enforced Object Ownership disable ACL changes. `setVisibility` then throws `StorageUnsupportedOperationError` for `AccessControlListNotSupported`. AWS still allows reading that bucket's object ACLs, which typically report `'private'`. Providers that reject ACL operations with an unsupported-operation error or HTTP 405/501 also produce `StorageUnsupportedOperationError`. Permission denials, other service failures, and malformed ACL responses throw `StorageOperationError`; missing objects throw `StorageNotFoundError`. Original service errors, including status and error code, are preserved as `cause`.
 
 ## Errors
 
