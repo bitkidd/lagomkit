@@ -29,13 +29,13 @@ without forcing a heavyweight framework or hiding core behavior.
 | [`@lagomkit/logger`](./packages/logger/README.md) | ✅ | Structured logging with Consola and Axiom drivers |
 | [`@lagomkit/queue`](./packages/queue/README.md) | ✅ | Typed job queue service built on `pg-boss` |
 | [`@lagomkit/random`](./packages/random/README.md) | ✅ | Random string/token/UUID generation |
+| [`@lagomkit/storage`](./packages/storage/README.md) | ✅ | File storage with local and lightweight S3 drivers |
 | `@lagomkit/cache` | 🤔 | Typed caching toolkit with TTL and pluggable drivers |
 | `@lagomkit/encryptor` | 🤔 | Typed encryption toolkit with composable drivers |
 | `@lagomkit/env` | 🤔 | Type-safe environment variable loader with validation |
 | `@lagomkit/kv` | 🤔 | Typed key-value storage with TTL and pluggable drivers |
 | `@lagomkit/otp` | 🤔 | Typed one-time password toolkit for generation and verification |
 | `@lagomkit/secrets` | 🤔 | Typed secrets management with pluggable providers |
-| `@lagomkit/storage` | 🤔 | Typed file storage toolkit with pluggable drivers |
 | `@lagomkit/oauth` | 🤔 | Typed OAuth toolkit for provider-based authentication flows |
 
 ## Install
@@ -51,6 +51,7 @@ pnpm add @lagomkit/mailer
 pnpm add @lagomkit/logger
 pnpm add @lagomkit/queue
 pnpm add @lagomkit/random
+pnpm add @lagomkit/storage
 ```
 
 Then follow the package-specific docs in `packages/*/README.md` for usage details.

@@ -1,0 +1,14 @@
+{
+	"$schema": "https://jsr.io/schema/config-file.v1.json",
+	"name": "@lagomkit/storage",
+	"version": "1.0.0",
+	"license": "MIT",
+	"exports": "./src/exports.ts",
+	"imports": {
+		"mrmime": "npm:mrmime@^2.0.1",
+		"s3mini": "npm:s3mini@^1.0.3"
+	},
+	"publish": {
+		"exclude": ["dist/**", "node_modules/**", "tests/**"]
+	}
+}
